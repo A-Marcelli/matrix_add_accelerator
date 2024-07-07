@@ -6,7 +6,9 @@ use work.Byte_Busters.all;
 
 entity acc_logic is 
 	generic(
+	
 		);
+		
 	port(
 		);
 end acc_logic;

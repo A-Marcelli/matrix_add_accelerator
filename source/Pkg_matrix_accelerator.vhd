@@ -5,10 +5,20 @@ use ieee.numeric_std.all;
 
 package Byte_Busters is 
 
+    --constants
+    
+    constant ELEMENT_SIZE : integer := 32;     --MP     size of a element of the matrix, also the size of a memory cell
+    
+    constant S_size       : integer := 16;     --MP
+    constant M_size       : integer := 16;     --MP
+    constant N_size       : integer := 16;     --MP
+
 	--subtypes
 
 	type array_2d     is array (integer range<>) of std_logic_vector;
 	type array_3d     is array (integer range<>) of array_2d;
+	
+
 
 	--opcodes
 
