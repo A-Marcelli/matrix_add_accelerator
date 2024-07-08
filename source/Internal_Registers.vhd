@@ -4,7 +4,7 @@ use ieee.numeric_std.all;
 use work.Byte_Busters.all;
 
 
-entity acc_registers is
+entity acc_register_file is
     generic(
 
         
@@ -25,7 +25,7 @@ entity acc_registers is
     );
 end entity;
 
-architecture acc_settings of acc_registers is
+architecture acc_settings of acc_register_file is
 
    --signals
    type CSR_reg_type is record
