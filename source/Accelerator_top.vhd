@@ -8,22 +8,23 @@ use work.Byte_Busters.all;
 
 entity matrix_add_accelerator is
 	generic(
-		SPM_NUM        : natural := 4;   -- The number of scratchpads and adders avaibles, "Minimum allowed is two" "MAX 255"
-    	Addr_Width     : natural := 14;  -- This address is for scratchpads banks. min: 4, max: 16 
-    	SIMD           : natural := 1;    -- Changing the SIMD, changes the number of banks in the spms. min 1, max 255
+		SPM_NUM         : natural := 4;   -- The number of scratchpads and adders avaibles, min 2, max 255
+    	BANK_ADDR_WIDTH : natural := 14;  -- address size of each BANK min: 4, max: 16 
+    	SIMD            : natural := 1;    -- banks in each spm min 1, max 255
         
-        N_RAM_ADDR     : natural := 3;     --MP, number of registers that contain a RAM cell address
-        N_LOCAL_ADDR   : natural := 3      --MP, number of registers that contain a local memory cell address
+        N_RAM_ADDR      : natural := 3;     --MP, number of registers that contain a RAM cell address
+        N_LOCAL_ADDR    : natural := 3      --MP, number of registers that contain a local memory cell address
         
 		 );
   	port (
   		clk                : in    std_logic;
   		rst_in             : in    std_logic;
   		----------------------------------------------------------------------------
-  		cpu_acc_data       : inout std_logic_vector(31 downto 0); -- input = comandi e scrittura su registri, output = lettura da parte della cpu
-  		cpu_acc_address    : in    std_logic_vector(31 downto 0);
-  		cpu_acc_read       : in    std_logic;                     -- write strobe
-  		cpu_acc_write      : in    std_logic;                     -- read  strobe
+  		cpu_acc_instr      : in    std_logic_vector(31 downto 0); -- to pass instructions
+  		cpu_acc_data       : in    std_logic_vector(31 downto 0); -- input = scrittura su registri
+  		cpu_acc_address    : in    std_logic_vector((2 + integer(ceil(log2(real(N_RAM_ADDR + N_LOCAL_ADDR)))) -1) downto 0);
+  		cpu_acc_write      : in    std_logic;                     -- write  strobe
+  		cpu_acc_busy       : out   std_logic; 
   		----------------------------------------------------------------------------
   		mem_acc_address    : out   std_logic_vector(31 downto 0);
   		mem_acc_data       : inout std_logic_vector(31 downto 0); -- input = lettura da memoria, output = scrittura in memoria
@@ -39,12 +40,17 @@ entity matrix_add_accelerator is
 
  architecture mat_acc of matrix_add_accelerator is 
  	--constants
-    constant SPM_ADDR_LEN: natural := ADDR_WIDTH + integer(ceil(log2(real(SIMD))));
-
-
+    constant SPM_ADDR_LEN   : natural := BANK_ADDR_WIDTH + integer(ceil(log2(real(SIMD))));    -- bit per indirizzare la singola SPM
+    constant SPM_BIT_N      : natural := integer(ceil(log2(real(SPM_NUM))));                   -- bit per identificare quale SPM
+    constant REG_ADDR_WIDTH : natural := 2 + integer(ceil(log2(real(N_RAM_ADDR+N_LOCAL_ADDR)))); --numero di bit usati per indirizzare il register file
  	--signals
 
-
+    type M_N_S_reg_type is record
+        M_value     : std_logic_vector((M_SIZE-1) downto 0);
+        N_value     : std_logic_vector((N_SIZE-1) downto 0);
+        S_value     : std_logic_vector((S_SIZE-1) downto 0); 
+    end record M_N_S_reg_type;
+    signal M_N_S_reg : M_N_S_reg_type;
  	--components
 
  	begin
