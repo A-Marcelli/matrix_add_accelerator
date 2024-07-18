@@ -20,10 +20,11 @@ entity matrix_add_accelerator is
   		clk                : in    std_logic;
   		rst_in             : in    std_logic;
   		----------------------------------------------------------------------------
-  		cpu_acc_instr      : in    std_logic_vector(31 downto 0); -- to pass instructions
-  		cpu_acc_data       : in    std_logic_vector(31 downto 0); -- input = scrittura su registri
-  		cpu_acc_address    : in    std_logic_vector((2 + integer(ceil(log2(real(N_RAM_ADDR + N_LOCAL_ADDR)))) -1) downto 0);
-  		cpu_acc_write      : in    std_logic;                     -- write  strobe
+  		--cpu_acc_instr      : in    std_logic_vector(31 downto 0); -- to pass instructions
+  		cpu_acc_data       : in    std_logic_vector(31 downto 0);                      -- input = scrittura su registri
+  		cpu_acc_address    : in    std_logic_vector((2 + 
+  		        integer(ceil(log2(real(N_RAM_ADDR + N_LOCAL_ADDR)))) -1) downto 0);    --CSR, instruction reg and addres registers
+  		cpu_acc_write      : in    std_logic;                                          -- write  strobe
   		cpu_acc_busy       : out   std_logic; 
   		----------------------------------------------------------------------------
   		mem_acc_address    : out   std_logic_vector(31 downto 0);
