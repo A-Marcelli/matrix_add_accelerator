@@ -49,7 +49,7 @@ architecture acc_settings of acc_registers is
 --   █ N_RAM_ADDR + N_LOCAL_ADDR █ LOCAL_ADDR █
 --   ██████████████████████████████████████████
    
-    signal regs :   array_2d((N_LOCAL_ADDR + N_RAM_ADDR) downto 0);     -- the first register is the instruction register
+    signal regs :   array_2d((N_LOCAL_ADDR + N_RAM_ADDR) downto 0)((ELEMENT_SIZE-1) downto 0);     -- the first register is the instruction register
     
 begin
 
@@ -75,7 +75,7 @@ begin
                     if addr_value <= (N_RAM_ADDR + N_LOCAL_ADDR) then
                         regs(addr_value) <= data_cpu;
                     end if;
-                    
+                    --else alza errore
                 end if;
             end if;
         end if;
@@ -96,7 +96,7 @@ begin
                     if addr_value = 0 then
                         regs(0) <= x"00000000"; 
                     end if;
-                    
+                    --else alza errore
                 end if;
             end if;
         end if;

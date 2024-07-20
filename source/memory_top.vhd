@@ -15,8 +15,8 @@ entity local_memory is
     );
     
     port(
-       data_out   : out   array_3d((SPM_NUM-1) downto 0)(1 downto 0)((ELEMENT_SIZE-1) downto 0);    -- da local a acceleratore
-	   data_in    : in    array_2d((SPM_NUM-1) downto 0)((ELEMENT_SIZE-1) downto 0);        -- da acceleratore a local
+       data_out   : out   array_3d((SPM_NUM-1) downto 0)(1 downto 0)((ELEMENT_SIZE-1) downto 0);    -- da memoria locale a acceleratore
+	   data_in    : in    array_2d((SPM_NUM-1) downto 0)((ELEMENT_SIZE-1) downto 0);        -- da acceleratore a memoria locale
 	   
 	   addr_out   : in    array_2d(1 downto 0)((SPM_ADDR_LEN-1) downto 0);          --operands addresses
 	   addr_in    : in    std_logic_vector((SPM_ADDR_LEN-1) downto 0);              --result address

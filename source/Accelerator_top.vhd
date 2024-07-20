@@ -18,7 +18,7 @@ entity matrix_add_accelerator is
 		 );
   	port (
   		clk                : in    std_logic;
-  		rst_in             : in    std_logic;
+  		reset              : in    std_logic;
   		----------------------------------------------------------------------------
   		--cpu_acc_instr      : in    std_logic_vector(31 downto 0); -- to pass instructions
   		cpu_acc_data       : in    std_logic_vector(31 downto 0);                      -- input = scrittura su registri
