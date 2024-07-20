@@ -5,6 +5,7 @@ use ieee.numeric_std.all;
 use ieee.math_real.all;
 use work.Byte_Busters.all;
 
+-- VALORI INIZIALI N,M? 2x2
 
 entity matrix_add_accelerator is
 	generic(
@@ -12,8 +13,8 @@ entity matrix_add_accelerator is
     	BANK_ADDR_WIDTH : natural := 14;  -- address size of each BANK min: 4, max: 16 
     	SIMD            : natural := 1;    -- banks in each spm min 1, max 255
         
-        N_RAM_ADDR      : natural := 3;     --MP, number of registers that contain a RAM cell address
-        N_LOCAL_ADDR    : natural := 3      --MP, number of registers that contain a local memory cell address
+      N_RAM_ADDR      : natural := 3;     --MP, number of registers that contain a RAM cell address
+      N_LOCAL_ADDR    : natural := 3      --MP, number of registers that contain a local memory cell address
         
 		 );
   	port (

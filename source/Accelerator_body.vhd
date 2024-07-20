@@ -54,12 +54,17 @@ signal read_sum_int, write_sum_int 	: std_logic;
 signal addr_reg_int    				: std_logic_vector((REG_ADDR_WIDTH-1) downto 0);     
 signal read_reg_int  				: std_logic;
 --cpu signals:
-signal cpu_acc_busy_int        		: std_logic;
+--signal cpu_acc_busy_int        		: std_logic;
 --main memory signals:
 signal mem_acc_address_int    		: std_logic_vector(31 downto 0);
 signal mem_acc_data_int       		: std_logic_vector(31 downto 0); -- input = lettura da memoria, output = scrittura in memoria
 signal mem_acc_read_int       		: std_logic;                     -- write strobe
 signal mem_acc_write_int      		: std_logic;                     -- read  strobe
+
+signal status_reg                   : std_logic_vector(31 downto 0); -- contiene busy, errori?. Struttura da definire. Busy bit 0
+signal M_N_S_reg                    : M_N_S_reg_type;                -- contiene M, N, S
+signal state, next_state            : std_logic_vector(31 downto 0); --da aggiustare
+signal count                        : integer; --solo per contare, può essere trasformata in variabile nei processi
 
 begin
 
@@ -73,7 +78,7 @@ write_ls		<= write_ls_int;
 write_sum		<= write_sum_int;
 addr_reg		<= addr_reg_int;
 read_reg		<= read_reg_int;
-cpu_acc_busy	<= cpu_acc_busy_int;
+cpu_acc_busy	<= status_reg(0);
 mem_acc_address	<= mem_acc_address_int; 
 mem_acc_data	<= mem_acc_data_int;
 mem_acc_read	<= mem_acc_read_int;
@@ -97,8 +102,58 @@ begin
 		mem_acc_data_int 	<= (others => '0');
 		mem_acc_read_int 	<= (others => '0');
 		mem_acc_write_int 	<= (others => '0');
+		status_reg          <= (others => '0');
+		M_N_S_reg.M_value   <= std_logic_vector(to_unsigned(2)); --valori di reset: M = 2, N = 2, S = 1;
+		M_N_S_reg.N_value   <= std_logic_vector(to_unsigned(2));
+		M_N_S_reg.S_value   <= std_logic_vector(to_unsigned(1));
 	end if;
 end process;
 
+state_reg_proc: process(clk, reset)
+begin
+	if reset = '1' then
+		state <= (others => '0');
+	elsif rising_edge(clk) then
+		state <= next_state;	
+	end if;
+end process;
+
+next_state_proc: process(all)
+begin
+	if reset = '1' then
+		next_state	<= (others => '0');
+	else
+		case state is 
+		when "0000" => -- da aggiustare col numero di bit corretto
+
+
+		--altri
+
+
+
+		when others =>
+			next_state <= (others => '0');
+		end case;
+
+	end if;
+end process;
+
+
+data_path_proc: process(clk, reset)
+begin
+	if reset = '0' and rising_edge(clk) then
+		case state is 
+		when "0000" => -- da aggiustare col numero di bit corretto
+
+
+		--altri
+
+
+
+		when others =>
+			
+		end case;
+
+	end if;
 
 end logic;
