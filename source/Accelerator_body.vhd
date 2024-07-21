@@ -63,8 +63,12 @@ signal mem_acc_write_int      		: std_logic;                     -- read  strobe
 
 signal status_reg                   : std_logic_vector(31 downto 0); -- contiene busy, errori?. Struttura da definire. Busy bit 0
 signal M_N_S_reg                    : M_N_S_reg_type;                -- contiene M, N, S
-signal state, next_state            : std_logic_vector(31 downto 0); --da aggiustare
+signal state, next_state            : std_logic_vector(4 downto 0);
+
+--mancano segnali per contare e dove appoggiare i vari elementi:
+signal op1, op2, result             : array_2d((SPM_NUM-1) downto 0)((ELEMENT_SIZE-1) downto 0); --tutti gli operandi ed i risultati. Se lettura o scrittura uso op1(0)
 signal count                        : integer; --solo per contare, può essere trasformata in variabile nei processi
+signal istruzione                   : std_logic_vector(31 downto 0); --contiene l'istruzione letta dai registri interni
 
 begin
 
@@ -86,7 +90,7 @@ mem_acc_write	<= mem_acc_write_int;
 
 reset_proc: process(reset)
 begin
-	if reset = '1' then
+	if reset = '1' then                             --state e next_state resettati nei loro processi
 		addr_operand_int 	<= (others => '0');
 		addr_result_int 	<= (others => '0');
 		data_mem_out_int 	<= (others => '0');
@@ -106,6 +110,11 @@ begin
 		M_N_S_reg.M_value   <= std_logic_vector(to_unsigned(2)); --valori di reset: M = 2, N = 2, S = 1;
 		M_N_S_reg.N_value   <= std_logic_vector(to_unsigned(2));
 		M_N_S_reg.S_value   <= std_logic_vector(to_unsigned(1));
+		istruzione          <= (others => '0');
+		count               <= (others => '0'); 
+		op1                 <= (others => '0'); 
+		op2                 <= (others => '0');
+		result              <= (others => '0');
 	end if;
 end process;
 
@@ -118,21 +127,81 @@ begin
 	end if;
 end process;
 
-next_state_proc: process(all)
+next_state_proc: process(all) --alzo e abbasso qui busy? fine_somma pure come variabile qua dentro
 begin
 	if reset = '1' then
 		next_state	<= (others => '0');
 	else
 		case state is 
-		when "0000" => -- da aggiustare col numero di bit corretto
-
-
-		--altri
-
-
-
+		when "00000" => 
+			if istruzione != x"00000000" then
+				next_state <= "00001";
+			else
+				next_state <= "00000";
+			end if;
+		when "00001" =>
+			case istruzione(2 downto 0) is --leggo opcode
+			when "001" => --load
+				next_state <= "00010";
+			when "010" => --store
+				next_state <= "00011";
+			when "011" => --add
+				next_state <= "00100";
+			when "100" => --set_m
+				next_state <= "00101";
+			when "101" => --set_n
+				next_state <= "00110";
+			when "110" => --set_s
+				next_state <= "00111";
+			when others => --errore
+				next_state <= "00000";
+			end case;
+		when "00101" =>              --set_m
+			next_state <= "00000";
+		when "00110" =>              --set_n
+			next_state <= "00000";
+		when "00111" =>              --set_s
+			next_state <= "00000";
+		when "00010" =>              --load
+			next_state <= "01000";
+		when "01000" =>
+			next_state <= "01001";
+		when "01001" =>               --DA COMPLETARE
+			--if fine matrice = vero then
+			--	next_state <= "01010";
+			--else 
+			--	next_state <= "01001";
+			--end if;
+		when "01010" => 
+			next_state <= "00000";
+		when "00011" =>               --store
+			next_state <= "01011";
+		when "01011" => 
+			next_state <= "01100";
+		when "01100" =>               --DA COMPLETARE
+			--if fine matrice = vero then
+			--	next_state <= "01101";
+			--else 
+			--	next_state <= "01100";
+			--end if;
+		when "01101" =>
+			next_state <= "00000";
+		when "00100" =>               --add
+			next_state <= "01110";
+		when "01110" => 
+			next_state <= "01111";
+		when "01111" => 
+			next_state <= "10000";
+		when "10000" =>               --DA COMPLETARE
+			--if fine somma = vero then
+			--	next_state <= "10001";
+			--else 
+			--	next_state <= "10000";
+			--end if;
+		when "10001" =>
+			next_state <= "00000";
 		when others =>
-			next_state <= (others => '0');
+			next_state <= "00000";
 		end case;
 
 	end if;
@@ -143,17 +212,46 @@ data_path_proc: process(clk, reset)
 begin
 	if reset = '0' and rising_edge(clk) then
 		case state is 
-		when "0000" => -- da aggiustare col numero di bit corretto
-
-
-		--altri
-
-
-
+		when "00000" => 
+			--
+		when "00001" =>
+			--
+		when "00101" =>              --set_m
+			--
+		when "00110" =>              --set_n
+			--
+		when "00111" =>              --set_s
+			--
+		when "00010" =>              --load
+			--
+		when "01000" =>
+			--
+		when "01001" =>
+			--
+		when "01010" => 
+			--
+		when "00011" =>               --store
+			--
+		when "01011" => 
+			--
+		when "01100" =>
+			--
+		when "01101" =>
+			--
+		when "00100" =>               --add
+			--
+		when "01110" => 
+			--
+		when "01111" => 
+			--
+		when "10000" =>
+			--
+		when "10001" =>
+			--
 		when others =>
-			
+			null;
 		end case;
-
 	end if;
+end process;
 
 end logic;
