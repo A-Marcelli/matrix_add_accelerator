@@ -13,8 +13,8 @@ entity matrix_add_accelerator is
     	BANK_ADDR_WIDTH : natural := 14;  -- address size of each BANK min: 4, max: 16 
     	SIMD            : natural := 1;    -- banks in each spm min 1, max 255
         
-      N_RAM_ADDR      : natural := 3;     --MP, number of registers that contain a RAM cell address
-      N_LOCAL_ADDR    : natural := 3      --MP, number of registers that contain a local memory cell address
+        N_RAM_ADDR      : natural := 3;     --number of registers that contain a RAM cell address
+        N_LOCAL_ADDR    : natural := 3      --number of registers that contain a local memory cell address
         
 		 );
   	port (
@@ -44,15 +44,11 @@ entity matrix_add_accelerator is
  	--constants
     constant SPM_ADDR_LEN   : natural := BANK_ADDR_WIDTH + integer(ceil(log2(real(SIMD))));    -- bit per indirizzare la singola SPM
     constant SPM_BIT_N      : natural := integer(ceil(log2(real(SPM_NUM))));                   -- bit per identificare quale SPM
-    constant REG_ADDR_WIDTH : natural := 2 + integer(ceil(log2(real(N_RAM_ADDR+N_LOCAL_ADDR)))); --numero di bit usati per indirizzare il register file
+    constant REG_ADDR_WIDTH : natural := integer(ceil(log2(real(N_RAM_ADDR+N_LOCAL_ADDR+2)))); --numero di bit usati per indirizzare il register file
  	--signals
 
-    type M_N_S_reg_type is record
-        M_value     : std_logic_vector((M_SIZE-1) downto 0);
-        N_value     : std_logic_vector((N_SIZE-1) downto 0);
-        S_value     : std_logic_vector((S_SIZE-1) downto 0); 
-    end record M_N_S_reg_type;
-    signal M_N_S_reg : M_N_S_reg_type;
+    
+
  	--components
 
  	begin

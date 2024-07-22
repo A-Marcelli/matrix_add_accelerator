@@ -17,7 +17,7 @@ entity local_interface is
         read_ls, write_ls    :   in std_logic;           -- from acc
         read_sum, write_sum  :   in std_logic;           -- from acc
         
-        spm_num              : in std_logic_vector((SPM_BIT_N-1) downto 0)       --per selezionare la SPM
+        spm_index              :   in std_logic_vector((SPM_BIT_N-1) downto 0)       --per selezionare la SPM
         
     );
 end local_interface;
@@ -29,7 +29,7 @@ begin
     read_signal:process(all)
     begin
         if read_ls = '1' then
-            read(to_integer(unsigned(spm_num))) <= '1';
+            read(to_integer(unsigned(spm_index))) <= '1';
         elsif read_sum = '1' then
             read <= (others => '1');
         else
@@ -40,7 +40,7 @@ begin
     write_signal:process(all)
     begin
         if write_ls = '1' then
-            write(to_integer(unsigned(spm_num))) <= '1';
+            write(to_integer(unsigned(spm_index))) <= '1';
         elsif write_sum = '1' then
             write <= (others => '1');
         else

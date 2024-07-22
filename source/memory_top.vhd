@@ -8,10 +8,10 @@ use work.Byte_Busters.all;
 
 entity local_memory is
     generic(
-        SIMD                : natural;
-    	BANK_ADDR_WIDTH     : natural;
-    	SPM_ADDR_LEN        : natural;
-    	SPM_NUM             : natural
+        SIMD                : natural   := 4;
+    	BANK_ADDR_WIDTH     : natural   := 14;
+    	SPM_ADDR_LEN        : natural   := 21;
+    	SPM_NUM             : natural   := 3
     );
     
     port(
@@ -41,9 +41,9 @@ architecture Behavioral of local_memory is
 --  components
     component scratchpad_memory is
         generic (
-    	    SIMD            : natural;
-    	    BANK_ADDR_WIDTH : natural;
-    	    SPM_ADDR_LEN        : natural 
+    	    SIMD            : natural  := 3;
+    	    BANK_ADDR_WIDTH : natural  := 14;
+    	    SPM_ADDR_LEN    : natural  := 5 
 	    );
 	    port (
 	        data_out   : out   array_2d(1 downto 0)((ELEMENT_SIZE-1) downto 0);    
@@ -62,7 +62,7 @@ begin
 
     data_out <= data_out_int;  
 
-    spm_generation: for i in 0 to SPM_NUM generate
+    spm_generation: for i in 0 to SPM_NUM-1 generate
      
         spm_instance: scratchpad_memory
             generic map(

@@ -10,6 +10,7 @@ entity acc_logic is
     	BANK_ADDR_WIDTH     : natural;
     	SPM_ADDR_LEN        : natural;
     	SPM_NUM             : natural;
+    	SPM_BIT_N           : natural;
     	N_RAM_ADDR      	: natural;
         N_LOCAL_ADDR    	: natural;
     	REG_ADDR_WIDTH      : natural
@@ -22,13 +23,14 @@ entity acc_logic is
 	   	addr_result   		: out std_logic_vector((SPM_ADDR_LEN-1) downto 0);     --result address
 		data_mem_in         : in  array_3d((SPM_NUM-1) downto 0)(1 downto 0)((ELEMENT_SIZE-1) downto 0); -- da memoria locale a acceleratore
 		data_mem_out        : out array_2d((SPM_NUM-1) downto 0)((ELEMENT_SIZE-1) downto 0);  -- da acceleratore a memoria locale (memory top)
-		spm_num             : out std_logic_vector((SPM_BIT_N-1) downto 0);  --per selezionare la SPM
+		spm_index             : out std_logic_vector((SPM_BIT_N-1) downto 0);  --per selezionare la SPM
 		read_ls, write_ls   : out std_logic;
         read_sum, write_sum : out std_logic;
         --register signals:
         data_reg_in   		: in  std_logic_vector((ELEMENT_SIZE-1) downto 0);      --per leggere indirizzi e istruzione        
+        data_reg_out   		: out std_logic_vector((ELEMENT_SIZE-1) downto 0);      --per scrivere il CSR        
 		addr_reg    		: out std_logic_vector((REG_ADDR_WIDTH-1) downto 0);     
-		read_reg  			: out std_logic;
+		read_reg, write_reg	: out std_logic;
         --cpu signals:
         cpu_acc_busy        : out std_logic;
         --main memory signals:
@@ -50,18 +52,27 @@ signal data_mem_out_int         	: array_2d((SPM_NUM-1) downto 0)((ELEMENT_SIZE-
 signal spm_num_int              	: std_logic_vector((SPM_BIT_N-1) downto 0);  --per selezionare la SPM
 signal read_ls_int, write_ls_int   	: std_logic;
 signal read_sum_int, write_sum_int 	: std_logic;
+
 --register signals:
 signal addr_reg_int    				: std_logic_vector((REG_ADDR_WIDTH-1) downto 0);     
 signal read_reg_int  				: std_logic;
+
 --cpu signals:
 --signal cpu_acc_busy_int        		: std_logic;
+
 --main memory signals:
 signal mem_acc_address_int    		: std_logic_vector(31 downto 0);
 signal mem_acc_data_int       		: std_logic_vector(31 downto 0); -- input = lettura da memoria, output = scrittura in memoria
 signal mem_acc_read_int       		: std_logic;                     -- write strobe
 signal mem_acc_write_int      		: std_logic;                     -- read  strobe
 
+-- body signals
 signal status_reg                   : std_logic_vector(31 downto 0); -- contiene busy, errori?. Struttura da definire. Busy bit 0
+type M_N_S_reg_type is record
+    M_value     : std_logic_vector((M_SIZE-1) downto 0);
+    N_value     : std_logic_vector((N_SIZE-1) downto 0);
+    S_value     : std_logic_vector((S_SIZE-1) downto 0); 
+end record M_N_S_reg_type;
 signal M_N_S_reg                    : M_N_S_reg_type;                -- contiene M, N, S
 signal state, next_state            : std_logic_vector(4 downto 0);
 
@@ -75,7 +86,7 @@ begin
 addr_operand	<= addr_operand_int;
 addr_result		<= addr_result_int;
 data_mem_out	<= data_mem_out_int;
-spm_num			<= spm_num_int;
+spm_index		<= spm_num_int;
 read_ls			<= read_ls_int;
 read_sum		<= read_sum_int;
 write_ls		<= write_ls_int;
@@ -134,74 +145,99 @@ begin
 	else
 		case state is 
 		when "00000" => 
-			if istruzione != x"00000000" then
+			if istruzione /= x"00000000" then
 				next_state <= "00001";
 			else
 				next_state <= "00000";
 			end if;
 		when "00001" =>
 			case istruzione(2 downto 0) is --leggo opcode
-			when "001" => --load
+			when LOAD => --load
 				next_state <= "00010";
-			when "010" => --store
+				
+			when STORE => --store
 				next_state <= "00011";
-			when "011" => --add
+				
+			when ADD => --add
 				next_state <= "00100";
-			when "100" => --set_m
+				
+			when SET_M => --set_m
 				next_state <= "00101";
-			when "101" => --set_n
+				
+			when SET_N => --set_n
 				next_state <= "00110";
-			when "110" => --set_s
+				
+			when SET_S => --set_s
 				next_state <= "00111";
+				
 			when others => --errore
 				next_state <= "00000";
+				
 			end case;
+			
 		when "00101" =>              --set_m
 			next_state <= "00000";
+			
 		when "00110" =>              --set_n
 			next_state <= "00000";
+			
 		when "00111" =>              --set_s
 			next_state <= "00000";
+			
 		when "00010" =>              --load
 			next_state <= "01000";
+			
 		when "01000" =>
 			next_state <= "01001";
+			
 		when "01001" =>               --DA COMPLETARE
 			--if fine matrice = vero then
 			--	next_state <= "01010";
 			--else 
 			--	next_state <= "01001";
 			--end if;
+			
 		when "01010" => 
 			next_state <= "00000";
+			
 		when "00011" =>               --store
 			next_state <= "01011";
+			
 		when "01011" => 
 			next_state <= "01100";
+			
 		when "01100" =>               --DA COMPLETARE
 			--if fine matrice = vero then
 			--	next_state <= "01101";
 			--else 
 			--	next_state <= "01100";
 			--end if;
+			
 		when "01101" =>
 			next_state <= "00000";
+			
 		when "00100" =>               --add
 			next_state <= "01110";
+			
 		when "01110" => 
 			next_state <= "01111";
+			
 		when "01111" => 
 			next_state <= "10000";
+			
 		when "10000" =>               --DA COMPLETARE
 			--if fine somma = vero then
 			--	next_state <= "10001";
 			--else 
 			--	next_state <= "10000";
 			--end if;
+			
 		when "10001" =>
 			next_state <= "00000";
+			
 		when others =>
 			next_state <= "00000";
+			
 		end case;
 
 	end if;
