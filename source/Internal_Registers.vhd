@@ -49,7 +49,7 @@ architecture acc_settings of acc_registers is
 --   █            .              █      .     █
 --   █            .              █      .     █
 --   █            .              █      .     █
---   █ N_RAM_ADDR + N_LOCAL_ADDR █ LOCAL_ADDR █
+--   █ N_RAM_ADDR+N_LOCAL_ADDR+1 █ LOCAL_ADDR █
 --   ██████████████████████████████████████████
    
     signal regs :   array_2d((N_LOCAL_ADDR + N_RAM_ADDR + 1) downto 0)((ELEMENT_SIZE-1) downto 0); 
@@ -107,7 +107,7 @@ begin
                 
                 if acc_read = '1' then          -- the accelerator has priority
                 
-                    if acc_addr_value <= (N_RAM_ADDR + N_LOCAL_ADDR) and acc_addr_value /= 0 then
+                    if acc_addr_value <= (N_RAM_ADDR + N_LOCAL_ADDR + 1) and acc_addr_value /= 0 then
                         acc_data_out <= regs(acc_addr_value);
                     end if;
                     
