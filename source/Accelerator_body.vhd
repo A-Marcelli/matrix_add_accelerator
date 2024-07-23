@@ -343,7 +343,7 @@ begin
 				write_ls_int            <= '1';
 				spm_index_int           <= std_logic_vector(to_unsigned(count mod SPM_NUM, SPM_BIT_N));
 				data_mem_out_int(count mod SPM_NUM)        <= mem_acc_data;
-				addr_result_int         <= std_logic_vector(unsigned(indirizzo_local_ls) + to_unsigned(offset_locale, 32)); --aumenta di 1 ogni spm_num cicli. Per evitare una divisione conto a "mano" con offset_locale
+				addr_result_int         <= std_logic_vector(unsigned(indirizzo_local_ls(SPM_ADDR_LEN-1 downto 0)) + to_unsigned(offset_locale, SPM_ADDR_LEN)); --aumenta di 1 ogni spm_num cicli. Per evitare una divisione conto a "mano" con offset_locale
 			end if;
 
 		when "01010" =>   --load ultimo elemento
@@ -354,7 +354,7 @@ begin
 			write_ls_int            	<= '1';
 			spm_index_int           	<= std_logic_vector(to_unsigned(count mod SPM_NUM, SPM_BIT_N));
 			data_mem_out_int(count mod SPM_NUM)        	<= mem_acc_data;
-			addr_result_int         	<= std_logic_vector(unsigned(indirizzo_local_ls) + to_unsigned(offset_locale, 32));
+			addr_result_int         	<= std_logic_vector(unsigned(indirizzo_local_ls(SPM_ADDR_LEN-1 downto 0)) + to_unsigned(offset_locale, SPM_ADDR_LEN));
 
 		when "00011" =>               --store
 			read_reg_int 			<= '1';
@@ -384,7 +384,7 @@ begin
 			if count mod SPM_NUM = 0 and count /= 0 then
 				offset_locale   	:= offset_locale + 1;
 			end if;
-			addr_operand_int(0)      	<= std_logic_vector(unsigned(indirizzo_local_ls) + to_unsigned(offset_locale, 32));
+			addr_operand_int(0)      	<= std_logic_vector(unsigned(indirizzo_local_ls(SPM_ADDR_LEN-1 downto 0)) + to_unsigned(offset_locale, SPM_ADDR_LEN));
 			spm_index_int            	<= count mod SPM_NUM;
 
 			--memoria centrale:
