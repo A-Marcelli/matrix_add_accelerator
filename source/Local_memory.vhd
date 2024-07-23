@@ -19,7 +19,7 @@ entity scratchpad_memory is
 	   addr_out   : in    array_2d(1 downto 0)((SPM_ADDR_LEN-1) downto 0);        -- operands
 	   addr_in    : in    std_logic_vector((SPM_ADDR_LEN-1) downto 0);            -- result
 	   
-	   read, write : in    std_logic;                                          --MP
+	   read_sm, write_sm : in    std_logic;                                          --MP
 	   
 	   clk        : in    std_logic                                           --MP
 	);
@@ -33,7 +33,7 @@ begin
 write_logic: process(clk)
 begin
     if(rising_edge(clk)) then
-        if write = '1' then
+        if write_sm = '1' then
             mem( to_integer(unsigned(addr_in( (SPM_ADDR_LEN -1) downto BANK_ADDR_WIDTH))) )
                 (to_integer(unsigned(addr_in(BANK_ADDR_WIDTH-1 downto 0)))) <= data_in;       
         end if;
@@ -43,7 +43,7 @@ end process;
 read_logic: process(clk)
 begin
     if(rising_edge(clk)) then
-        if read = '1' then
+        if read_sm = '1' then
             data_out(0) <= mem( to_integer(unsigned(addr_out(0)( (SPM_ADDR_LEN -1) downto BANK_ADDR_WIDTH))) )
                 (to_integer(unsigned(addr_out(0)(BANK_ADDR_WIDTH-1 downto 0))));
             

@@ -26,7 +26,7 @@ entity local_memory is
 	--   read_sum, write_sum :  in  std_logic;      -- read and write for sum
 	--   read_ls, write_ls   :  in  std_logic       -- read and write for load/store
 	   
-	   read, write : in std_logic_vector((SPM_NUM-1) downto 0)                 -- one for each SPM
+	   read_mem, write_mem : in std_logic_vector((SPM_NUM-1) downto 0)                 -- one for each SPM
         
     );
 end local_memory;
@@ -52,7 +52,7 @@ architecture Behavioral of local_memory is
 	        addr_out   : in    array_2d(1 downto 0)((SPM_ADDR_LEN-1) downto 0);          
 	        addr_in    : in    std_logic_vector((SPM_ADDR_LEN-1) downto 0);          
 	   
-	        read, write : in    std_logic;                                         
+	        read_sm, write_sm : in    std_logic;                                         
 	   
 	        clk        : in    std_logic                                           
 	    );
@@ -77,8 +77,8 @@ begin
                 addr_out => addr_out,
                 addr_in  => addr_in,
                 
-                read     => read(i),
-                write    => write(i),
+                read_sm     => read_mem(i),
+                write_sm    => write_mem(i),
                 
                 clk      => clk
             );

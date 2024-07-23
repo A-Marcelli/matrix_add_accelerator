@@ -124,7 +124,7 @@ begin
 		write_sum_int 		<= '0';
 		addr_reg_int 		<= (others => '0');
 		read_reg_int 		<= '0';
-		cpu_acc_busy_int 	<= '0';
+		--cpu_acc_busy_int 	<= '0';
 		mem_acc_address_int <= (others => '0');
 		mem_acc_data_int 	<= (others => 'Z');                 --high impedence
 		mem_acc_read_int 	<= '0'; 
@@ -286,7 +286,7 @@ begin
 			write_ls_int            	<= '0';
 			mem_acc_write_int           <= '0';
 			write_sum               <= '0';
-			mem_acc_data_int            <= (others => 'z');
+			mem_acc_data_int            <= (others => 'Z');
 
 			if prima_iterazione = '1' then
 				addr_reg_int 		<= std_logic_vector(to_unsigned(0, REG_ADDR_WIDTH));
@@ -385,12 +385,12 @@ begin
 				offset_locale   	:= offset_locale + 1;
 			end if;
 			addr_operand_int(0)      	<= std_logic_vector(unsigned(indirizzo_local_ls(SPM_ADDR_LEN-1 downto 0)) + to_unsigned(offset_locale, SPM_ADDR_LEN));
-			spm_index_int            	<= count mod SPM_NUM;
+			spm_index_int            	<= std_logic_vector(to_unsigned((count mod SPM_NUM), SPM_BIT_N));
 
 			--memoria centrale:
 			if count /= 0 then
 				mem_acc_write_int    	<= '1';
-				mem_acc_data_int        <= data_mem_in(spm_index)(0);
+				mem_acc_data_int        <= data_mem_in(to_integer(unsigned(spm_index)))(0);
 				mem_acc_address_int     <= std_logic_vector(unsigned(indirizzo_mem_ls) + to_unsigned(offset_indirizzo, 32));
 			end if;
 
@@ -400,7 +400,7 @@ begin
 
 			--memoria centrale:
 			mem_acc_write_int    		<= '1';
-			mem_acc_data_int        	<= data_mem_in(spm_index)(0);
+			mem_acc_data_int        	<= data_mem_in(to_integer(unsigned(spm_index)))(0);
 			mem_acc_address_int     	<= std_logic_vector(unsigned(indirizzo_mem_ls) + to_unsigned(offset_indirizzo, 32));
 
 		when "00100" =>               --add
@@ -442,10 +442,10 @@ begin
 			--somma e scrittura
 			if count /= 0 then
 				write_sum_int           <= '1';
-				addr_result_int     <= std_logic_vector(unsigned(indirizzo_res(SPM_ADDR_LEN-1 downto 0)) + to_unsigned(offset_result, SPM_ADDR_LEN))
+				addr_result_int     <= std_logic_vector(unsigned(indirizzo_res(SPM_ADDR_LEN-1 downto 0)) + to_unsigned(offset_result, SPM_ADDR_LEN));
 				
 				for i in 0 to SPM_NUM-1 loop
-					data_mem_out_int(i) <= data_mem_in(i)(0) + data_mem_in(i)(1);
+					data_mem_out_int(i) <= std_logic_vector(unsigned(data_mem_in(i)(0)) + unsigned(data_mem_in(i)(1)));
 				end loop;
 				
 				offset_result       <= offset_result + 1;
@@ -456,9 +456,9 @@ begin
 			read_sum_int        <= '0';
 
 			write_sum_int           <= '1';
-			addr_result_int     <= std_logic_vector(unsigned(indirizzo_res(SPM_ADDR_LEN-1 downto 0)) + to_unsigned(offset_result, SPM_ADDR_LEN))
+			addr_result_int     <= std_logic_vector(unsigned(indirizzo_res(SPM_ADDR_LEN-1 downto 0)) + to_unsigned(offset_result, SPM_ADDR_LEN));
 			for i in 0 to SPM_NUM-1 loop
-				data_mem_out_int(i) <= data_mem_in(i)(0) + data_mem_in(i)(1);
+				data_mem_out_int(i) <= std_logic_vector(unsigned(data_mem_in(i)(0)) + unsigned(data_mem_in(i)(1)));
 			end loop;
 
 		when others =>
