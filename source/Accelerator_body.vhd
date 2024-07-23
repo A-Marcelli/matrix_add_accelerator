@@ -23,7 +23,7 @@ entity acc_logic is
 	   	addr_result   		: out std_logic_vector((SPM_ADDR_LEN-1) downto 0);     --result address
 		data_mem_in         : in  array_3d((SPM_NUM-1) downto 0)(1 downto 0)((ELEMENT_SIZE-1) downto 0); -- da memoria locale a acceleratore
 		data_mem_out        : out array_2d((SPM_NUM-1) downto 0)((ELEMENT_SIZE-1) downto 0);  -- da acceleratore a memoria locale (memory top)
-		spm_index             : out std_logic_vector((SPM_BIT_N-1) downto 0);  --per selezionare la SPM
+		spm_index           : out std_logic_vector((SPM_BIT_N-1) downto 0);  --per selezionare la SPM
 		read_ls, write_ls   : out std_logic;
         read_sum, write_sum : out std_logic;
         --register signals:
@@ -36,8 +36,8 @@ entity acc_logic is
         --main memory signals:
         mem_acc_address    : out   std_logic_vector(31 downto 0);
   		mem_acc_data       : inout std_logic_vector(31 downto 0); -- input = lettura da memoria, output = scrittura in memoria
-  		mem_acc_read       : out   std_logic;                     -- write strobe
-  		mem_acc_write      : out   std_logic                      -- read  strobe
+  		mem_acc_read       : out   std_logic;                     -- read strobe
+  		mem_acc_write      : out   std_logic                      -- write  strobe
 		);
 end acc_logic;
 
@@ -80,6 +80,11 @@ signal state, next_state            : std_logic_vector(4 downto 0);
 signal op1, op2, result             : array_2d((SPM_NUM-1) downto 0)((ELEMENT_SIZE-1) downto 0); --tutti gli operandi ed i risultati. Se lettura o scrittura uso op1(0)
 signal count                        : integer; --solo per contare, può essere trasformata in variabile nei processi
 signal istruzione                   : std_logic_vector(31 downto 0); --contiene l'istruzione letta dai registri interni
+signal prima_iterazione             : std_logic;
+signal indirizzo_local_ls           : std_logic_vector(31 downto 0);
+signal indirizzo_mem_ls             : std_logic_vector(31 downto 0);
+signal ultimo_elemento              : integer;
+signal offset_indirizzo             : integer;
 
 begin
 
@@ -114,7 +119,7 @@ begin
 		read_reg_int 		<= (others => '0');
 		cpu_acc_busy_int 	<= (others => '0');
 		mem_acc_address_int <= (others => '0');
-		mem_acc_data_int 	<= (others => '0');
+		mem_acc_data_int 	<= (others => 'x');                  --high impedence
 		mem_acc_read_int 	<= (others => '0');
 		mem_acc_write_int 	<= (others => '0');
 		status_reg          <= (others => '0');
@@ -122,10 +127,15 @@ begin
 		M_N_S_reg.N_value   <= std_logic_vector(to_unsigned(2));
 		M_N_S_reg.S_value   <= std_logic_vector(to_unsigned(1));
 		istruzione          <= (others => '0');
-		count               <= (others => '0'); 
+		count               <= 0; 
 		op1                 <= (others => '0'); 
 		op2                 <= (others => '0');
 		result              <= (others => '0');
+		prima_iterazione    <= '1';                              -- 1 = è la prima iterazione.
+		indirizzo_local_ls  <= (others => '0');
+		indirizzo_mem_ls    <= (others => '0');
+		ultimo_elemento     <= 0;
+		offset_indirizzo    <= 0;
 	end if;
 end process;
 
@@ -138,7 +148,7 @@ begin
 	end if;
 end process;
 
-next_state_proc: process(all) --alzo e abbasso qui busy? fine_somma pure come variabile qua dentro
+next_state_proc: process(all) --alzo e abbasso qui busy. fine_somma pure come variabile qua dentro
 begin
 	if reset = '1' then
 		next_state	<= (others => '0');
@@ -146,28 +156,29 @@ begin
 		case state is 
 		when "00000" => 
 			if istruzione /= x"00000000" then
-				next_state <= "00001";
+				next_state 		<= "00001";
+				status_reg(0) 	<= '1';     --metto busy a 1
 			else
 				next_state <= "00000";
 			end if;
 		when "00001" =>
 			case istruzione(2 downto 0) is --leggo opcode
-			when LOAD => --load
+			when LOAD =>
 				next_state <= "00010";
 				
-			when STORE => --store
+			when STORE =>
 				next_state <= "00011";
 				
-			when ADD => --add
+			when ADD =>
 				next_state <= "00100";
 				
-			when SET_M => --set_m
+			when SET_M =>
 				next_state <= "00101";
 				
-			when SET_N => --set_n
+			when SET_N =>
 				next_state <= "00110";
 				
-			when SET_S => --set_s
+			when SET_S =>
 				next_state <= "00111";
 				
 			when others => --errore
@@ -175,30 +186,34 @@ begin
 				
 			end case;
 			
-		when "00101" =>              --set_m
-			next_state <= "00000";
+		when "00101" =>                 --set_m
+			next_state 		<= "00000";
+			status_reg(0) 	<= '0';     --metto busy a 0
 			
-		when "00110" =>              --set_n
-			next_state <= "00000";
+		when "00110" =>                 --set_n
+			next_state 		<= "00000";
+			status_reg(0) 	<= '0';     --metto busy a 0
 			
-		when "00111" =>              --set_s
-			next_state <= "00000";
+		when "00111" =>                 --set_s
+			next_state 		<= "00000";
+			status_reg(0) 	<= '0';     --metto busy a 0
 			
-		when "00010" =>              --load
+		when "00010" =>                 --load
 			next_state <= "01000";
 			
 		when "01000" =>
 			next_state <= "01001";
 			
-		when "01001" =>               --DA COMPLETARE
-			--if fine matrice = vero then
-			--	next_state <= "01010";
-			--else 
-			--	next_state <= "01001";
-			--end if;
+		when "01001" =>
+			if count = (ultimo_elemento-2) then    --l'ultimo elemento viene letto allo stato successivo
+				next_state <= "01010";
+			else 
+				next_state <= "01001";
+			end if;
 			
 		when "01010" => 
-			next_state <= "00000";
+			next_state 		<= "00000";
+			status_reg(0) 	<= '0';   --metto busy a 0
 			
 		when "00011" =>               --store
 			next_state <= "01011";
@@ -207,14 +222,15 @@ begin
 			next_state <= "01100";
 			
 		when "01100" =>               --DA COMPLETARE
-			--if fine matrice = vero then
+			--if count = (ultimo_elemento-2) then
 			--	next_state <= "01101";
 			--else 
 			--	next_state <= "01100";
 			--end if;
 			
 		when "01101" =>
-			next_state <= "00000";
+			next_state 		<= "00000";
+			status_reg(0) 	<= '0';   --metto busy a 0
 			
 		when "00100" =>               --add
 			next_state <= "01110";
@@ -226,17 +242,19 @@ begin
 			next_state <= "10000";
 			
 		when "10000" =>               --DA COMPLETARE
-			--if fine somma = vero then
+			--if count = (ultimo_elemento-2) then
 			--	next_state <= "10001";
 			--else 
 			--	next_state <= "10000";
 			--end if;
 			
 		when "10001" =>
-			next_state <= "00000";
+			next_state 		<= "00000";
+			status_reg(0) 	<= '0';   --metto busy a 0
 			
 		when others =>
-			next_state <= "00000";
+			next_state 		<= "00000";
+			status_reg(0) 	<= '0';   --metto busy a 0
 			
 		end case;
 
@@ -245,26 +263,76 @@ end process;
 
 
 data_path_proc: process(clk, reset)
+
+variable offset_locale : integer := 0;
+
 begin
 	if reset = '0' and rising_edge(clk) then
 		case state is 
+
 		when "00000" => 
-			--
+			if prima_iterazione = '1' then
+				addr_reg_int 		<= std_logic_vector(to_unsigned(0, REG_ADDR_WIDTH));
+				read_reg_int		<= '1';
+				prima_iterazione 	<= '0';
+			elsif istruzione = x"00000000" then       --sennò la sovrascrive
+				istruzione 			<= data_reg_in;
+			end if;
+
 		when "00001" =>
-			--
+			read_reg_int			<= '0';
+			prima_iterazione 		<= '1';
+
 		when "00101" =>              --set_m
-			--
+			M_N_S_reg.M_value       <= istruzione(18 downto 3);
+
 		when "00110" =>              --set_n
-			--
+			M_N_S_reg.N_value       <= istruzione(18 downto 3);
+
 		when "00111" =>              --set_s
-			--
-		when "00010" =>              --load
-			--
-		when "01000" =>
-			--
-		when "01001" =>
-			--
-		when "01010" => 
+			M_N_S_reg.S_value       <= istruzione(18 downto 3);
+
+		when "00010" =>              --load, leggo indirizzo matrice memoria main
+			read_reg_int 			<= '1';
+			addr_reg_int            <= istruzione((8 + (REG_ADDR_WIDTH-1)) downto 8);  -- non avendo una dimensione fissa, nell'istruzione sono 5 bit (8-12), ma devo leggere solo quelli necessari
+
+		when "01000" =>              --salvo elemento letto ciclo prima e leggo indirizzo memoria locale
+			indirizzo_mem_ls        <= data_reg_in;
+			read_reg_int 			<= '1';
+			addr_reg_int            <= istruzione((3 + (REG_ADDR_WIDTH-1)) downto 3);  -- non avendo una dimensione fissa, nell'istruzione sono 5 bit (3-7), ma devo leggere solo quelli necessari
+			count                   <= 0;
+			offset_indirizzo        <= 0;
+			ultimo_elemento         <= to_integer(unsigned(M_N_S_reg.M_value)) * to_integer(unsigned(M_N_S_reg.N_value));
+
+		when "01001" =>              --leggo elemento dalla main memory e salvo elemento letto ciclo precedente
+			count 					<= count + 1;
+			offset_indirizzo        <= offset_indirizzo + to_integer(unsigned(M_N_S_reg.S_value));
+
+			--registri interni:
+			if count = 0 then
+				indirizzo_local_ls      <= data_reg_in;
+				read_reg_int            <= '0';
+				offset_locale           := 0;
+			end if;
+
+			--main memory:
+			mem_acc_read            <= '1';
+			mem_acc_address         <= std_logic_vector(unsigned(indirizzo_mem_ls) + to_unsigned(offset_indirizzo, 32));
+
+			--memoria locale:
+			if count /= 0 then
+				if count mod SPM_NUM = 0 then
+					offset_locale   := offset_locale + 1;
+				end if;
+				write_ls            <= '1';
+				spm_index           <= std_logic_vector(to_unsigned(count mod SPM_NUM, SPM_BIT_N));
+				data_mem_out        <= mem_acc_data;
+				addr_result         <= std_logic_vector(unsigned(indirizzo_local_ls) + to_unsigned(offset_locale, 32)); --aumenta di 1 ogni spm_num cicli. Per evitare una divisione conto a "mano" con offset_locale
+			end if;
+
+
+
+		when "01010" =>   --load ultimo elemento, da finire
 			--
 		when "00011" =>               --store
 			--

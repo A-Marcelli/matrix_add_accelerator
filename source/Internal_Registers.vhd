@@ -79,7 +79,7 @@ begin
         
         elsif rising_edge(clk) then
             
-            if acc_write = '1' then             -- the accelerator has priority
+            if acc_write = '1' then             -- the accelerator has priority. Mmm, ma la cpu scrive solo quando busy=0 giusto? non dovrebbe capitare mai che scrivono insieme
                 
                 if acc_addr_value = 0 then
                     regs(0) <= acc_data_in;
@@ -105,7 +105,7 @@ begin
         if reset = '0' then
             if rising_edge(clk) then
                 
-                if acc_read = '1' then          -- the accelerator has priority
+                if acc_read = '1' then          -- the accelerator has priority, non possono leggere insieme?
                 
                     if acc_addr_value <= (N_RAM_ADDR + N_LOCAL_ADDR + 1) and acc_addr_value /= 0 then
                         acc_data_out <= regs(acc_addr_value);
@@ -114,7 +114,7 @@ begin
                 elsif cpu_read = '1' then
                 
                     if cpu_addr_value = 0 then
-                        cpu_data_out <= regs(0);       -- can read only the CSR
+                        cpu_data_out <= regs(0);       -- can read only the CSR -> non è indirizzo 1 il CSR?
                     end if;     
                                
                 end if;
