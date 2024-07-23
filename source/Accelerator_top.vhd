@@ -14,7 +14,7 @@ entity matrix_add_accelerator is
     	SIMD            : natural := 1;    -- banks in each spm min 1, max 255
         
         N_RAM_ADDR      : natural := 3;     --number of registers that contain a RAM cell address
-        N_LOCAL_ADDR    : natural := 3      --number of registers that contain a local memory cell address  --la somma dei due registri deve fare massimo 30
+        N_LOCAL_ADDR    : natural := 3      --number of registers that contain a local memory cell address
         
 		 );
   	port (
@@ -23,7 +23,7 @@ entity matrix_add_accelerator is
   		----------------------------------------------------------------------------
   		--cpu_acc_instr      : in    std_logic_vector(31 downto 0); -- to pass instructions
   		cpu_acc_data       : in    std_logic_vector(31 downto 0);                      -- input = scrittura su registri
-  		cpu_acc_address    : in    std_logic_vector((2 +                               --da spostare anche qui quel +2?
+  		cpu_acc_address    : in    std_logic_vector((2 + 
   		        integer(ceil(log2(real(N_RAM_ADDR + N_LOCAL_ADDR)))) -1) downto 0);    --CSR, instruction reg and addres registers
   		cpu_acc_write      : in    std_logic;                                          -- write  strobe
   		cpu_acc_busy       : out   std_logic; 
