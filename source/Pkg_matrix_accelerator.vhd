@@ -28,13 +28,7 @@ package Byte_Busters is
   	constant SET_M      : std_logic_vector(2 downto 0) := "100";
   	constant SET_N      : std_logic_vector(2 downto 0) := "101";
   	constant SET_S    	: std_logic_vector(2 downto 0) := "110";
-  	
-  	--addresses
-  	
-  	constant ROW_SEL_WIDTH   : natural   := 16;
-  	constant BANK_SEL_WIDTH  : natural   := 8;
-  	constant SPM_SEL_WIDTH   : natural   := 8;     
-    
+
 
   	--functions
 
