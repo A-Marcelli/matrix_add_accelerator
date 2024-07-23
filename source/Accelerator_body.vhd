@@ -90,9 +90,11 @@ signal indirizzo_op2                : std_logic_vector(31 downto 0);
 signal indirizzo_res                : std_logic_vector(31 downto 0);
 signal offset_result                : integer;
 signal fine_somma                   : integer;
+signal data_reg_out_int             : std_logic_vector(31 downto 0);
 
 begin
 
+data_reg_out    <= data_reg_out_int;
 addr_operand	<= addr_operand_int;
 addr_result		<= addr_result_int;
 data_mem_out	<= data_mem_out_int;
@@ -111,45 +113,46 @@ mem_acc_write	<= mem_acc_write_int;
 ultimo_elemento <= to_integer(unsigned(M_N_S_reg.M_value)) * to_integer(unsigned(M_N_S_reg.N_value));
 
 
-reset_proc: process(reset)
-begin
-	if reset = '1' then                             --state e next_state resettati nei loro processi
-		addr_operand_int 	<= (others => "0");
-		addr_result_int 	<= (others => '0');
-		data_mem_out_int 	<= (others => "0");
-		spm_index_int 		<= (others => '0');   
-		read_ls_int 		<= '0';
-		read_sum_int 		<= '0';
-		write_ls_int 		<= '0';
-		write_sum_int 		<= '0';
-		addr_reg_int 		<= (others => '0');
-		read_reg_int 		<= '0';
-		--cpu_acc_busy_int 	<= '0';
-		mem_acc_address_int <= (others => '0');
-		mem_acc_data_int 	<= (others => 'Z');                 --high impedence
-		mem_acc_read_int 	<= '0'; 
-		mem_acc_write_int 	<= '0';
-		status_reg          <= (others => '0');
-		M_N_S_reg.M_value   <= std_logic_vector(to_unsigned(2, 16)); --valori di reset: M = 2, N = 2, S = 1;
-		M_N_S_reg.N_value   <= std_logic_vector(to_unsigned(2, 16));
-		M_N_S_reg.S_value   <= std_logic_vector(to_unsigned(1, 16));
-		istruzione          <= (others => '0');
-		count               <= 0; 
-		--op1                 <= (others => "0"); 
-		--op2                 <= (others => "0");
-		--result              <= (others => "0");
-		prima_iterazione    <= '1';                              -- 1 = è la prima iterazione.
-		indirizzo_local_ls  <= (others => '0');
-		indirizzo_mem_ls    <= (others => '0');
-		ultimo_elemento     <= 0;
-		offset_indirizzo    <= 0;
-		indirizzo_op1       <= (others => '0');
-		indirizzo_op2       <= (others => '0');
-		indirizzo_res       <= (others => '0');
-		offset_result       <= 0;
-		fine_somma          <= 0;
-	end if;
-end process;
+--reset_proc: process(reset)
+--begin
+--	if reset = '1' then                             --state e next_state resettati nei loro processi
+--		addr_operand_int 	<= (others => (others => '0'));
+--		addr_result_int 	<= (others => '0');
+--		data_mem_out_int 	<= (others => (others => '0'));
+--		spm_index_int 		<= (others => '0');   
+--		read_ls_int 		<= '0';
+--		read_sum_int 		<= '0';
+--		write_ls_int 		<= '0';
+--		write_sum_int 		<= '0';
+--		addr_reg_int 		<= (others => '0');
+--		read_reg_int 		<= '0';
+--		--cpu_acc_busy_int 	<= '0';
+--		mem_acc_address_int <= (others => '0');
+--		mem_acc_data_int 	<= (others => 'Z');                 --high impedence
+--		mem_acc_read_int 	<= '0'; 
+--		mem_acc_write_int 	<= '0';
+--		status_reg          <= (others => '0');
+--		M_N_S_reg.M_value   <= std_logic_vector(to_unsigned(2, 16)); --valori di reset: M = 2, N = 2, S = 1;
+--		M_N_S_reg.N_value   <= std_logic_vector(to_unsigned(2, 16));
+--		M_N_S_reg.S_value   <= std_logic_vector(to_unsigned(1, 16));
+--		istruzione          <= (others => '0');
+--		count               <= 0; 
+--		--op1                 <= (others => "0"); 
+--		--op2                 <= (others => "0");
+--		--result              <= (others => "0");
+--		prima_iterazione    <= '1';                              -- 1 = è la prima iterazione.
+--		indirizzo_local_ls  <= (others => '0');
+--		indirizzo_mem_ls    <= (others => '0');
+--		ultimo_elemento     <= 0;
+--		offset_indirizzo    <= 0;
+--		indirizzo_op1       <= (others => '0');
+--		indirizzo_op2       <= (others => '0');
+--		indirizzo_res       <= (others => '0');
+--		offset_result       <= 0;
+--		fine_somma          <= 0;
+--        data_reg_out_int    <= (others => '0'); 
+--	end if;
+--end process;
 
 state_reg_proc: process(clk, reset)
 begin

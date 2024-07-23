@@ -8,10 +8,10 @@ use work.Byte_Busters.all;
 
 entity local_memory is
     generic(
-        SIMD                : natural   := 4;
-    	BANK_ADDR_WIDTH     : natural   := 14;
-    	SPM_ADDR_LEN        : natural   := 21;
-    	SPM_NUM             : natural   := 3
+        SIMD                : natural;
+    	BANK_ADDR_WIDTH     : natural;
+    	SPM_ADDR_LEN        : natural;
+    	SPM_NUM             : natural
     );
     
     port(

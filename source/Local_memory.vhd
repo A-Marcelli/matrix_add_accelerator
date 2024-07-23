@@ -7,9 +7,9 @@ use work.Byte_Busters.all;
 
 entity scratchpad_memory is 
 	generic (
-    	SIMD            : natural  := 3;
-    	BANK_ADDR_WIDTH : natural  := 16;
-    	SPM_ADDR_LEN    : natural  := 24
+    	SIMD            : natural;
+    	BANK_ADDR_WIDTH : natural;
+    	SPM_ADDR_LEN    : natural
 
 	);
 	port (

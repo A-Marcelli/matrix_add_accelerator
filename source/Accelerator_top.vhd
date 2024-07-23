@@ -7,13 +7,13 @@ use work.Byte_Busters.all;
 
 entity matrix_add_accelerator is
 	generic(
-		SPM_NUM         : natural := 4;   -- The number of scratchpads and adders avaibles, min 2, max 255
-    	BANK_ADDR_WIDTH : natural := 14;  -- address size of each BANK min: 4, max: 16 
-    	SIMD            : natural := 1;    -- banks in each spm min 1, max 255
+		SPM_NUM         : natural := 2;   -- The number of scratchpads and adders avaibles, min 2, max 255
+    	BANK_ADDR_WIDTH : natural := 6;  -- address size of each BANK min: 4, max: 16 
+    	SIMD            : natural := 2;    -- banks in each spm min 1, max 255                     -- da errore se uguale a 1
         
-      N_RAM_ADDR      : natural := 3;     --number of registers that contain a RAM cell address
-      N_LOCAL_ADDR    : natural := 3      --number of registers that contain a local memory cell address  --la somma dei due registri deve fare massimo 30
-        
+        N_RAM_ADDR      : natural := 3;     --number of registers that contain a RAM cell address
+        N_LOCAL_ADDR    : natural := 3      --number of registers that contain a local memory cell address  --la somma dei due registri deve fare massimo 30
+          
 		 );
   	port (
   		clk                : in    std_logic;
@@ -232,7 +232,7 @@ entity matrix_add_accelerator is
 
    memories: local_memory
    generic map(
-      spm_index         => SIMD,
+      SIMD              => SIMD,
       BANK_ADDR_WIDTH   => BANK_ADDR_WIDTH,
       SPM_ADDR_LEN      => SPM_ADDR_LEN,
       SPM_NUM           => SPM_NUM
@@ -240,8 +240,8 @@ entity matrix_add_accelerator is
    port map(
       data_out          => data_mem_in, 
       data_in           => data_mem_out, 
-      addr_out          => addr_result, 
-      addr_in           => addr_operand, 
+      addr_out          => addr_operand, 
+      addr_in           => addr_result, 
       clk               => clk, 
       read_mem          => read_mem, 
       write_mem         => write_mem
