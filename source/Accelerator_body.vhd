@@ -103,6 +103,7 @@ mem_acc_address	<= mem_acc_address_int;
 mem_acc_data	<= mem_acc_data_int;
 mem_acc_read	<= mem_acc_read_int;
 mem_acc_write	<= mem_acc_write_int;
+ultimo_elemento <= to_integer(unsigned(M_N_S_reg.M_value)) * to_integer(unsigned(M_N_S_reg.N_value));
 
 reset_proc: process(reset)
 begin
@@ -119,7 +120,7 @@ begin
 		read_reg_int 		<= (others => '0');
 		cpu_acc_busy_int 	<= (others => '0');
 		mem_acc_address_int <= (others => '0');
-		mem_acc_data_int 	<= (others => 'x');                  --high impedence
+		mem_acc_data_int 	<= (others => 'z');                  --high impedence
 		mem_acc_read_int 	<= (others => '0');
 		mem_acc_write_int 	<= (others => '0');
 		status_reg          <= (others => '0');
@@ -221,12 +222,12 @@ begin
 		when "01011" => 
 			next_state <= "01100";
 			
-		when "01100" =>               --DA COMPLETARE
-			--if count = (ultimo_elemento-2) then
-			--	next_state <= "01101";
-			--else 
-			--	next_state <= "01100";
-			--end if;
+		when "01100" =>
+			if count = (ultimo_elemento-2) then
+				next_state <= "01101";
+			else 
+				next_state <= "01100";
+			end if;
 			
 		when "01101" =>
 			next_state 		<= "00000";
@@ -271,6 +272,10 @@ begin
 		case state is 
 
 		when "00000" => 
+			write_ls            	<= '0';
+			mem_acc_write           <= '0';
+			mem_acc_data            <= (others => 'z');
+
 			if prima_iterazione = '1' then
 				addr_reg_int 		<= std_logic_vector(to_unsigned(0, REG_ADDR_WIDTH));
 				read_reg_int		<= '1';
@@ -302,7 +307,6 @@ begin
 			addr_reg_int            <= istruzione((3 + (REG_ADDR_WIDTH-1)) downto 3);  -- non avendo una dimensione fissa, nell'istruzione sono 5 bit (3-7), ma devo leggere solo quelli necessari
 			count                   <= 0;
 			offset_indirizzo        <= 0;
-			ultimo_elemento         <= to_integer(unsigned(M_N_S_reg.M_value)) * to_integer(unsigned(M_N_S_reg.N_value));
 
 		when "01001" =>              --leggo elemento dalla main memory e salvo elemento letto ciclo precedente
 			count 					<= count + 1;
@@ -322,7 +326,7 @@ begin
 			--memoria locale:
 			if count /= 0 then
 				if count mod SPM_NUM = 0 then
-					offset_locale   := offset_locale + 1;
+					offset_locale   := offset_locale + 4; --+4 o +1?????
 				end if;
 				write_ls            <= '1';
 				spm_index           <= std_logic_vector(to_unsigned(count mod SPM_NUM, SPM_BIT_N));
@@ -330,20 +334,65 @@ begin
 				addr_result         <= std_logic_vector(unsigned(indirizzo_local_ls) + to_unsigned(offset_locale, 32)); --aumenta di 1 ogni spm_num cicli. Per evitare una divisione conto a "mano" con offset_locale
 			end if;
 
+		when "01010" =>   --load ultimo elemento
+			--main memory:
+			mem_acc_read            <= '0';
 
+			--memoria locale:
+			write_ls            	<= '1';
+			spm_index           	<= std_logic_vector(to_unsigned(count mod SPM_NUM, SPM_BIT_N));
+			data_mem_out        	<= mem_acc_data;
+			addr_result         	<= std_logic_vector(unsigned(indirizzo_local_ls) + to_unsigned(offset_locale, 32));
 
-		when "01010" =>   --load ultimo elemento, da finire
-			--
 		when "00011" =>               --store
-			--
+			read_reg_int 			<= '1';
+			addr_reg_int            <= istruzione((3 + (REG_ADDR_WIDTH-1)) downto 3);  -- non avendo una dimensione fissa, nell'istruzione sono 5 bit (8-12), ma devo leggere solo quelli necessari
+
+
 		when "01011" => 
-			--
+			indirizzo_local_ls      <= data_reg_in;
+			read_reg_int 			<= '1';
+			addr_reg_int            <= istruzione((8 + (REG_ADDR_WIDTH-1)) downto 8);  -- non avendo una dimensione fissa, nell'istruzione sono 5 bit (3-7), ma devo leggere solo quelli necessari
+			count                   <= 0;
+			offset_indirizzo        <= 0;
+
 		when "01100" =>
-			--
+			count 					<= count + 1;
+			offset_indirizzo        <= offset_indirizzo + to_integer(unsigned(M_N_S_reg.S_value));
+
+			--registri interni:
+			if count = 0 then
+				indirizzo_mem_ls    <= data_reg_in;
+				read_reg_int        <= '0';
+				offset_locale       := 0;
+			end if;
+
+			--memoria locale:
+			read_ls           	 	<= '1';
+			if count mod SPM_NUM = 0 and count /= 0 then
+				offset_locale   	:= offset_locale + 4; --+4 o +1?????
+			end if;
+			addr_operand(0)      	<= std_logic_vector(unsigned(indirizzo_local_ls) + to_unsigned(offset_locale, 32));
+			spm_index            	<= count mod SPM_NUM;
+
+			--memoria centrale:
+			if count /= 0 then
+				mem_acc_write    	<= '1';
+				mem_acc_data        <= data_mem_in(spm_index)(0);
+				mem_acc_address     <= std_logic_vector(unsigned(indirizzo_mem_ls) + to_unsigned(offset_indirizzo, 32));
+			end if;
+
 		when "01101" =>
-			--
+			--memoria locale:
+			read_ls             	<= '0';
+
+			--memoria centrale:
+			mem_acc_write    		<= '1';
+			mem_acc_data        	<= data_mem_in(spm_index)(0);
+			mem_acc_address     	<= std_logic_vector(unsigned(indirizzo_mem_ls) + to_unsigned(offset_indirizzo, 32));
+
 		when "00100" =>               --add
-			--
+			
 		when "01110" => 
 			--
 		when "01111" => 
