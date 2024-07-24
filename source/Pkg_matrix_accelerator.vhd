@@ -29,7 +29,8 @@ package Byte_Busters is
   	constant SET_N      : std_logic_vector(2 downto 0) := "101";
   	constant SET_S    	: std_logic_vector(2 downto 0) := "110";
 
-  	constant ROW_SEL_WIDTH   : natural  := 16;
+    --bit usati per indirizzare un singolo banco, una intera SPM e tutte le SPM
+  	constant ROW_SEL_WIDTH   : natural  := 16;   
   	constant BANK_SEL_WIDTH  : natural  := 8;
   	constant SPM_SEL_WIDTH   : natural  := 8;
 

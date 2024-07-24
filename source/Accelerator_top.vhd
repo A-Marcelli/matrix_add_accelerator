@@ -7,8 +7,8 @@ use work.Byte_Busters.all;
 
 entity matrix_add_accelerator is
 	generic(
-		SPM_NUM         : natural := 2;   -- The number of scratchpads and adders avaibles, min 2, max 255
-    	BANK_ADDR_WIDTH : natural := 6;  -- address size of each BANK min: 4, max: 16 
+		SPM_NUM         : natural := 2;    -- The number of scratchpads and adders avaibles, min 2, max 255
+    	BANK_ADDR_WIDTH : natural := 8;    -- address size of each BANK min: 4, max: 16 
     	SIMD            : natural := 2;    -- banks in each spm min 1, max 255                     -- da errore se uguale a 1
         
         N_RAM_ADDR      : natural := 3;     --number of registers that contain a RAM cell address
@@ -40,17 +40,15 @@ entity matrix_add_accelerator is
 
  architecture mat_acc of matrix_add_accelerator is 
  	--constants
-    constant SPM_ADDR_LEN   : natural := BANK_ADDR_WIDTH + integer(ceil(log2(real(SIMD))));    -- bit per indirizzare la singola SPM
-    constant SPM_BIT_N      : natural := integer(ceil(log2(real(SPM_NUM))));                   -- bit per identificare quale SPM
     constant REG_ADDR_WIDTH : natural := integer(ceil(log2(real(N_RAM_ADDR+N_LOCAL_ADDR+2)))); --numero di bit usati per indirizzare il register file
  	
 
    --signals
-   signal addr_operand        : array_2d(1 downto 0)((SPM_ADDR_LEN-1) downto 0);
-   signal addr_result         : std_logic_vector((SPM_ADDR_LEN-1) downto 0);
+   signal addr_operand        : array_2d(1 downto 0)((ROW_SEL_WIDTH + BANK_SEL_WIDTH - 1) downto 0);
+   signal addr_result         : std_logic_vector((ROW_SEL_WIDTH + BANK_SEL_WIDTH - 1) downto 0);
    signal data_mem_in         : array_3d((SPM_NUM-1) downto 0)(1 downto 0)((ELEMENT_SIZE-1) downto 0);
    signal data_mem_out        : array_2d((SPM_NUM-1) downto 0)((ELEMENT_SIZE-1) downto 0);
-   signal spm_index           : std_logic_vector((SPM_BIT_N-1) downto 0);
+   signal spm_index           : std_logic_vector((SPM_SEL_WIDTH-1) downto 0);
    signal read_ls             : std_logic;
    signal read_sum            : std_logic;
    signal write_ls            : std_logic;
@@ -70,9 +68,7 @@ entity matrix_add_accelerator is
    generic(
       SIMD                 : natural;
       BANK_ADDR_WIDTH      : natural;
-      SPM_ADDR_LEN         : natural;
       SPM_NUM              : natural;
-      SPM_BIT_N            : natural;
       N_RAM_ADDR           : natural;
       N_LOCAL_ADDR         : natural;
       REG_ADDR_WIDTH       : natural
@@ -81,11 +77,11 @@ entity matrix_add_accelerator is
    port(
       clk, reset          : in  std_logic;
       --local memory signals:
-      addr_operand         : out array_2d(1 downto 0)((SPM_ADDR_LEN-1) downto 0); --operands addresses
-      addr_result       : out std_logic_vector((SPM_ADDR_LEN-1) downto 0);     --result address
+      addr_operand         : out array_2d(1 downto 0)((ROW_SEL_WIDTH+BANK_SEL_WIDTH-1) downto 0); --operands addresses
+      addr_result       : out std_logic_vector((ROW_SEL_WIDTH+BANK_SEL_WIDTH-1) downto 0);     --result address
       data_mem_in         : in  array_3d((SPM_NUM-1) downto 0)(1 downto 0)((ELEMENT_SIZE-1) downto 0); -- da memoria locale a acceleratore
       data_mem_out        : out array_2d((SPM_NUM-1) downto 0)((ELEMENT_SIZE-1) downto 0);  -- da acceleratore a memoria locale (memory top)
-      spm_index           : out std_logic_vector((SPM_BIT_N-1) downto 0);  --per selezionare la SPM
+      spm_index           : out std_logic_vector((SPM_SEL_WIDTH-1) downto 0);  --per selezionare la SPM
       read_ls, write_ls   : out std_logic;
       read_sum, write_sum : out std_logic;
       --register signals:
@@ -130,32 +126,27 @@ entity matrix_add_accelerator is
 
    component local_memory is
     generic(
-      SIMD              : natural;
+      SIMD                : natural;
       BANK_ADDR_WIDTH     : natural;
-      SPM_ADDR_LEN        : natural;
       SPM_NUM             : natural
     );
     
     port(
-      data_out   : out   array_3d((SPM_NUM-1) downto 0)(1 downto 0)((ELEMENT_SIZE-1) downto 0);    -- da memoria locale a acceleratore
-      data_in    : in    array_2d((SPM_NUM-1) downto 0)((ELEMENT_SIZE-1) downto 0);        -- da acceleratore a memoria locale
+        data_out   : out   array_3d((SPM_NUM-1) downto 0)(1 downto 0)((ELEMENT_SIZE-1) downto 0);    -- da memoria locale a acceleratore
+	    data_in    : in    array_2d((SPM_NUM-1) downto 0)((ELEMENT_SIZE-1) downto 0);        -- da acceleratore a memoria locale
+	   
+	    addr_out   : in    array_2d(1 downto 0)((ROW_SEL_WIDTH + BANK_SEL_WIDTH - 1) downto 0);          --operands addresses
+	    addr_in    : in    std_logic_vector((ROW_SEL_WIDTH + BANK_SEL_WIDTH - 1) downto 0);              --result address
+	      
+        clk        : in    std_logic;
       
-      addr_out   : in    array_2d(1 downto 0)((SPM_ADDR_LEN-1) downto 0);          --operands addresses
-      addr_in    : in    std_logic_vector((SPM_ADDR_LEN-1) downto 0);              --result address
-      
-      clk        : in    std_logic;
-      
-   --   read_sum, write_sum :  in  std_logic;      -- read and write for sum
-   --   read_ls, write_ls   :  in  std_logic       -- read and write for load/store
-      
-      read_mem, write_mem : in std_logic_vector((SPM_NUM-1) downto 0)                 -- one for each SPM 
+        read_mem, write_mem : in std_logic_vector((SPM_NUM-1) downto 0)                 -- one for each SPM 
     );
    end component;
 
 
    component local_interface is
     generic(
-        SPM_BIT_N   : natural;
         SPM_NUM     : natural
     );
     
@@ -165,7 +156,7 @@ entity matrix_add_accelerator is
         read_ls, write_ls    :   in std_logic;           -- from acc
         read_sum, write_sum  :   in std_logic;           -- from acc
         
-        spm_index              :   in std_logic_vector((SPM_BIT_N-1) downto 0)       --per selezionare la SPM      
+        spm_index              :   in std_logic_vector((SPM_SEL_WIDTH-1) downto 0)       --per selezionare la SPM      
     );
    end component;
 
@@ -177,9 +168,7 @@ entity matrix_add_accelerator is
    generic map(
       SIMD              => SIMD,
       BANK_ADDR_WIDTH   => BANK_ADDR_WIDTH,
-      SPM_ADDR_LEN      => SPM_ADDR_LEN,
       SPM_NUM           => SPM_NUM,
-      SPM_BIT_N         => SPM_BIT_N,
       N_RAM_ADDR        => N_RAM_ADDR,
       N_LOCAL_ADDR      => N_LOCAL_ADDR,
       REG_ADDR_WIDTH    => REG_ADDR_WIDTH
@@ -233,7 +222,6 @@ entity matrix_add_accelerator is
    generic map(
       SIMD              => SIMD,
       BANK_ADDR_WIDTH   => BANK_ADDR_WIDTH,
-      SPM_ADDR_LEN      => SPM_ADDR_LEN,
       SPM_NUM           => SPM_NUM
       )
    port map(
@@ -248,7 +236,6 @@ entity matrix_add_accelerator is
 
    interface_mem: local_interface
    generic map(
-      SPM_BIT_N         => SPM_BIT_N,
       SPM_NUM           => SPM_NUM
       )
    port map(

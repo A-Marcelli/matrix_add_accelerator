@@ -7,7 +7,6 @@ use work.Byte_Busters.all;
 --sceglie quale delle SPM andrà letta nel caso di load/store, oppure mette tuyyi i read o tutti i write a 1 nel caso di somma
 entity local_interface is
     generic(
-        SPM_BIT_N   : natural;
         SPM_NUM     : natural
     );
     
@@ -17,7 +16,7 @@ entity local_interface is
         read_ls, write_ls    :   in std_logic;           -- from acc
         read_sum, write_sum  :   in std_logic;           -- from acc
         
-        spm_index              :   in std_logic_vector((SPM_BIT_N-1) downto 0)       --per selezionare la SPM
+        spm_index              :   in std_logic_vector((SPM_SEL_WIDTH-1) downto 0)       --per selezionare la SPM
         
     );
 end local_interface;
