@@ -9,10 +9,10 @@ ENTITY RAM is
 		RESET: in std_logic;
 		RD: in std_logic;
 		WR: in std_logic;
-		Addr: in std_logic_vector(18 downto 0);
-		Load:in std_logic;
-		Store:in std_logic;
-		Data: inout std_logic_vector(7 downto 0)
+		Addr: in std_logic_vector(31 downto 0);
+		Load:in std_logic;    --file
+		Store:in std_logic;   --file
+		Data: inout std_logic_vector(31 downto 0)
 		);
 END RAM;
 

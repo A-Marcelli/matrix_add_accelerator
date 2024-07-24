@@ -69,11 +69,17 @@ architecture acc_settings of acc_registers is
 --      BIT 8: █     S NON VALIDO                       █     0
    
    
-    signal regs :   array_2d((N_LOCAL_ADDR + N_RAM_ADDR + 1) downto 0)((ELEMENT_SIZE-1) downto 0); 
-    
+    signal regs             :   array_2d((N_LOCAL_ADDR + N_RAM_ADDR + 1) downto 0)((ELEMENT_SIZE-1) downto 0); 
+    signal acc_data_out_int :   std_logic_vector((ELEMENT_SIZE-1) downto 0);      
+    signal cpu_data_out_int :   std_logic_vector((ELEMENT_SIZE-1) downto 0);      
+
 begin
     
-    write_proc: process(all)
+    acc_data_out    <=  acc_data_out_int;
+    cpu_data_out    <=  cpu_data_out_int;
+    
+    
+    write_proc: process(reset, clk)
         variable cpu_addr_value: integer := to_integer(unsigned(cpu_addr));
         variable acc_addr_value: integer := to_integer(unsigned(acc_addr));
     begin
@@ -110,24 +116,23 @@ begin
         variable cpu_addr_value: integer := to_integer(unsigned(cpu_addr));
         variable acc_addr_value: integer := to_integer(unsigned(acc_addr));
     begin
-        if reset = '0' then
-            if rising_edge(clk) then
-                
+            acc_data_out_int    <=  (others =>  '0');
+            cpu_data_out_int    <=  (others =>  '0');
+            
                 if acc_read = '1' then          -- the accelerator has priority,
-                
+
                     if acc_addr_value <= (N_RAM_ADDR + N_LOCAL_ADDR + 1) and acc_addr_value /= 1 then
-                        acc_data_out <= regs(acc_addr_value);
+                        acc_data_out_int <= regs(acc_addr_value);
                     end if;
                     
                 elsif cpu_read = '1' then
-                
+                    
                     if cpu_addr_value = 1 then
-                        cpu_data_out <= regs(1);       -- can read only the CSR
+                        cpu_data_out_int <= regs(1);       -- can read only the CSR
                     end if;     
-                               
+
                 end if;
-            end if;
-        end if;
+                
     end process;
     
     

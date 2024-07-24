@@ -113,6 +113,8 @@ mem_acc_write	<= mem_acc_write_int;
 ultimo_elemento <= to_integer(unsigned(M_N_S_reg.M_value)) * to_integer(unsigned(M_N_S_reg.N_value));
 write_reg       <= write_reg_int;
 
+
+
 state_reg_proc: process(clk, reset)
 begin
 	if reset = '1' then
@@ -269,7 +271,8 @@ end process;
 
 data_path_proc: process(clk, reset)
 
-    variable offset_locale : integer := 0;
+    variable offset_locale   : integer := 0;
+    variable S_value_variable: integer;
 
 begin
 
@@ -308,6 +311,7 @@ begin
         CSR                 <= x"00000038";
         write_reg_int       <= '0';
 	elsif rising_edge(clk) then
+        S_value_variable        := to_integer(unsigned(M_N_S_reg.S_value & '0' & '0'));
 
 		case state is 
 
@@ -387,7 +391,8 @@ begin
 
 		when "01001" =>              --leggo elemento dalla main memory e salvo elemento letto ciclo precedente
 			count 					<= count + 1;
-			offset_indirizzo        <= offset_indirizzo + to_integer(unsigned(M_N_S_reg.S_value));
+			
+			offset_indirizzo        <= offset_indirizzo + S_value_variable;
 
 			--registri interni:
 			if count = 0 then
@@ -442,7 +447,7 @@ begin
 
 		when "01100" =>
 			count 					<= count + 1;
-			offset_indirizzo        <= offset_indirizzo + to_integer(unsigned(M_N_S_reg.S_value));
+			offset_indirizzo        <= offset_indirizzo + S_value_variable;
 
 			--registri interni:
 			if count = 0 then
