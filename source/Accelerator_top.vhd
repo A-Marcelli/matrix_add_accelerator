@@ -19,12 +19,11 @@ entity matrix_add_accelerator is
   		clk                : in    std_logic;
   		reset              : in    std_logic;
   		----------------------------------------------------------------------------
-  		--cpu_acc_instr      : in    std_logic_vector(31 downto 0); -- to pass instructions
-      cpu_data_in        : in    std_logic_vector(31 downto 0);
-      cpu_data_out       : out   std_logic_vector(31 downto 0);
-      cpu_addr           : in    std_logic_vector((integer(ceil(log2(real(N_RAM_ADDR + N_LOCAL_ADDR + 2)))) -1) downto 0);    --CSR, instruction reg and addres registers
-      cpu_write          : in    std_logic; 
-      cpu_read           : in    std_logic; 
+        cpu_data_in        : in    std_logic_vector(31 downto 0);
+        cpu_data_out       : out   std_logic_vector(31 downto 0);
+        cpu_addr           : in    std_logic_vector((integer(ceil(log2(real(N_RAM_ADDR + N_LOCAL_ADDR + 2)))) -1) downto 0);    --CSR, instruction reg and addres registers
+        cpu_write          : in    std_logic; 
+        cpu_read           : in    std_logic; 
   		cpu_acc_busy       : out   std_logic; 
   		----------------------------------------------------------------------------
   		mem_acc_address    : out   std_logic_vector(31 downto 0);
@@ -218,8 +217,8 @@ entity matrix_add_accelerator is
    port map(
       cpu_data_in       => cpu_data_in,--
       cpu_data_out      => cpu_data_out,--
-      acc_data_in       => data_reg_in,
-      acc_data_out      => data_reg_out,
+      acc_data_in       => data_reg_out,
+      acc_data_out      => data_reg_in,
       cpu_addr          => cpu_addr,--
       acc_addr          => addr_reg,
       cpu_write         => cpu_write,--

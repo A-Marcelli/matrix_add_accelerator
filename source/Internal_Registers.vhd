@@ -44,38 +44,46 @@ architecture acc_settings of acc_registers is
 --   █            .              █      .     █
 --   █            .              █      .     █
 --   █            .              █      .     █
---   █        N_RAM_ADDR         █ RAM_ADDR   █
---   █        N_RAM_ADDR+1       █ LOCAL_ADDR █
+--   █        N_RAM_ADDR+1       █ RAM_ADDR   █
+--   █        N_RAM_ADDR+2       █ LOCAL_ADDR █
 --   █            .              █      .     █
 --   █            .              █      .     █
 --   █            .              █      .     █
 --   █ N_RAM_ADDR+N_LOCAL_ADDR+1 █ LOCAL_ADDR █
 --   ██████████████████████████████████████████
+
+   
+--   █████████████████████████████████████████████████████████████████
+--      BIT #  █     FUNZIONE                           █  DEFAULT
+--   █████████████████████████████████████████████████████████████████
+--       0     █     ISTRUZIONE NON VALIDA              █     0
+--      BIT 1: █     INDIRIZZO RAM NON VALIDO (INTERNO) █     0
+--      BIT 2: █     INDIRIZZO LOC NON VALIDO (INTERNO) █     0
+
+--      BIT 3: █     N NON SETTATO                      █     1
+--      BIT 4: █     M NON SETTATO                      █     1
+--      BIT 5: █     S NON SETTATO                      █     1
+
+--      BIT 6: █     N NON VALIDO                       █     0
+--      BIT 7: █     M NON VALIDO                       █     0
+--      BIT 8: █     S NON VALIDO                       █     0
+   
    
     signal regs :   array_2d((N_LOCAL_ADDR + N_RAM_ADDR + 1) downto 0)((ELEMENT_SIZE-1) downto 0); 
     
 begin
-
---    reset_proc: process(reset)
---    begin
---        if reset = '1' then
-            
---            for i in 0 to (N_RAM_ADDR + N_LOCAL_ADDR + 1) loop
---                regs(i) <= (others => '0');
---            end loop;
-
---        end if;
---    end process;
-    
     
     write_proc: process(all)
         variable cpu_addr_value: integer := to_integer(unsigned(cpu_addr));
         variable acc_addr_value: integer := to_integer(unsigned(acc_addr));
     begin
         if reset = '1' then
+        
             for i in 0 to (N_RAM_ADDR + N_LOCAL_ADDR + 1) loop
                 regs(i) <= (others => '0');
-            end loop;        
+            end loop; 
+            
+            regs(1)     <= x"00000038";       
         
         elsif rising_edge(clk) then
             
