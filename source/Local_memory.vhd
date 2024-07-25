@@ -26,7 +26,8 @@ end scratchpad_memory;
 
 architecture memory of scratchpad_memory is
 
-    signal mem              :   array_3d(SIMD-1 downto 0)((2**(BANK_ADDR_WIDTH)-1) downto 0)(ELEMENT_SIZE-1 downto 0);
+    signal mem              :   array_3d(SIMD-1 downto 0)((2**(BANK_ADDR_WIDTH)-1) downto 0)(ELEMENT_SIZE-1 downto 0)
+                            := (others =>   (others =>  (others=>   '0')));
     --signal mem              :   array_2d((2**(BANK_ADDR_WIDTH)-1) downto 0)(ELEMENT_SIZE-1 downto 0);
     signal data_out_int     :   array_2d(1 downto 0)((ELEMENT_SIZE-1) downto 0);
     

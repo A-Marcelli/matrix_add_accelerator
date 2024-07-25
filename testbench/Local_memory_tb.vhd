@@ -130,6 +130,28 @@ begin
 
         -- Wait for read to complete
         wait for clk_period * 6;
+        
+        -- SCRITTURA SU UN BANCO CHE NO NESISTE
+        -- Write to memory
+        data_in <= x"00001111"; -- Data to write
+        addr_in <= x"0A0003"; 
+        write_sm <= '1'; -- Enable write
+        wait for clk_period;
+        write_sm <= '0'; -- Disable write
+
+        -- Wait for write to complete
+        wait for clk_period * 6;
+
+        -- Read from memory
+        addr_out(1) <= x"000000"; -- Address to read from (binary for 3)
+        addr_out(0) <= x"0A0003"; -- Address to read from (binary for 3)
+        read_sm <= '1'; -- Enable read
+        wait for clk_period * 2;
+        read_sm <= '0'; -- Disable read
+
+        -- Wait for read to complete
+        wait for clk_period * 6;
+        
 
         -- Check results
         --assert data_out(0) = x"10101010"

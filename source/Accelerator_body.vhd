@@ -140,6 +140,9 @@ begin
 				next_state <= "00000";
 			end if;
 		when "00001" =>
+		
+--		████████████  LETTURA OPCODE  ██████████████
+		
 			case istruzione(2 downto 0) is --leggo opcode
 			when LOAD =>
 				next_state <= "00010";
@@ -163,21 +166,26 @@ begin
 				next_state  <= "10010";
 			end case;
 			
+--			████████████  SET_M  ██████████████
+			
 		when "00101" =>                 --set_m
 			next_state         <= "10010"; 
 
+--			████████████  SET_N  ██████████████
 			
 		when "00110" =>                 --set_n
 			next_state         <= "10010"; 
 
-			
+--			████████████  SET_S  ██████████████
+
 		when "00111" =>                 --set_s
 			next_state         <= "10010"; 
 
+--			████████████  LOAD  ██████████████
 			
 		when "00010" =>                 --load
 			
-			-- error check
+			-- controllo se i registri indirizzati esistono
 			if ( unsigned(istruzione((8 + (REG_ADDR_WIDTH-1)) downto 8)) >= (N_RAM_ADDR) ) then
                 next_state      <= "10010";
             
@@ -186,6 +194,7 @@ begin
             else
                 next_state <= "01000";              --procede con l'operazione
             end if;
+            -- fine controllo
 			
 		when "01000" =>
 			next_state <= "01001";
@@ -196,16 +205,18 @@ begin
 			if count = (ultimo_elemento-2) then    --l'ultimo elemento viene letto allo stato successivo
 				next_state <= "01010";
 			elsif count = 0 then
+			
 				-- controllo dell'indirizzo
                 if (unsigned(data_reg_in(BANK_SEL_WIDTH+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH)) > SIMD-1) then
                     next_state      <= "10010";
-                elsif (unsigned(data_reg_in(SPM_SEL_WIDTH+BANK_SEL_WIDTH+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH+BANK_SEL_WIDTH)) /= 0) then
+                elsif (unsigned(data_reg_in(SPM_SEL_WIDTH+BANK_SEL_WIDTH+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH+BANK_SEL_WIDTH)) /= 0) then --???
                     next_state      <= "10010";
                 elsif (unsigned(data_reg_in(ROW_SEL_WIDTH-1 downto 0)) > BANK_ADDR_WIDTH-1) then
                     next_state      <= "10010";
                 else
                     next_state  <= "01001";
                 end if;
+                -- fine controllo
             else
                 next_state  <= "01001";
 			end if;
@@ -215,9 +226,11 @@ begin
 		when "01010" => 
 			next_state 		<= "00000";
 			
+--			████████████  STORE  ██████████████
+			
 		when "00011" =>               --store
 			
-			--error check
+			-- controllo indirizzi dei registri
 			if ( unsigned(istruzione((8 + (REG_ADDR_WIDTH-1)) downto 8)) >= (N_RAM_ADDR) ) then
                 next_state      <= "10010";
             
@@ -227,6 +240,7 @@ begin
             else
                 next_state      <= "01011";         -- procede con la store
             end if;
+            -- fine controllo
 			
 		when "01011" => 
 			next_state <= "01100";
@@ -234,11 +248,12 @@ begin
 			-- controllo dell'indirizzo
             if (unsigned(data_reg_in(BANK_SEL_WIDTH+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH)) > SIMD-1) then
                 next_state      <= "10010";
-            elsif (unsigned(data_reg_in(SPM_SEL_WIDTH+BANK_SEL_WIDTH+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH+BANK_SEL_WIDTH)) /= 0) then
+            elsif (unsigned(data_reg_in(SPM_SEL_WIDTH+BANK_SEL_WIDTH+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH+BANK_SEL_WIDTH)) /= 0) then --???
                 next_state      <= "10010";
             elsif (unsigned(data_reg_in(ROW_SEL_WIDTH-1 downto 0)) > BANK_ADDR_WIDTH-1) then
                 next_state      <= "10010";
             end if;
+            -- fine controllo
 			
 		when "01100" =>
 			if count = (ultimo_elemento-2) then
@@ -249,23 +264,22 @@ begin
 			
 		when "01101" =>
 			next_state 		<= "00000";
+
+--			████████████  ADD  ██████████████
 			
 		when "00100" =>               --add
 			
-			--error check
+			-- controllo indirizzi
 			if ( unsigned(istruzione((8 + (REG_ADDR_WIDTH-1)) downto 8))  >= (N_LOCAL_ADDR) ) then
-                next_state      <= "10010";
-                        
+                next_state      <= "10010";                       
             elsif ( unsigned(istruzione((3 + (REG_ADDR_WIDTH-1)) downto 3)) >= (N_LOCAL_ADDR) ) then
-                next_state      <= "10010";
-            
+                next_state      <= "10010";          
             elsif ( unsigned(istruzione((13 + (REG_ADDR_WIDTH-1)) downto 13)) >= (N_LOCAL_ADDR) ) then
                 next_state      <= "10010";
-
             else
                 next_state      <= "01110";         -- procede con l'add
-
             end if;
+            -- fine controllo
 			
 		when "01110" => 
 			next_state <= "01111";
@@ -282,6 +296,8 @@ begin
 			
 		when "10001" =>
 			next_state 		<= "00000";
+
+--			████████████  ERROR STATE  ██████████████
 		
 		when "10010" =>               -- error state
 		    next_state      <= "00000";
@@ -369,16 +385,23 @@ begin
 				busy 	<= '1';               --metto busy a 1
 			end if;
 
+--			████████████  CONTROLLO OPCODE  ██████████████
+
 		when "00001" =>
 			read_reg_int			<= '0';
 			prima_iterazione 		<= '1';
 			
+			-- controllo se l'opcode è valido
 			if ( (istruzione(2 downto 0) = "000") or (istruzione(2 downto 0) = "111") ) then
 			     CSR(0)              <= '1';
 			end if;
+            -- fine controllo
+
+--			████████████  SET_M  ██████████████
             
 		when "00101" =>              --set_m
-		
+		      
+		    -- M non può essere nullo
 		    if istruzione(18 downto 3) = x"0000" then
 			     CSR(7)                  <= '1'; 
 			else
@@ -386,17 +409,21 @@ begin
 			     CSR(4)                  <= '0';
 			end if; 
 		
-			
+--			████████████  SET_N  ██████████████
 
-		when "00110" =>              --set_n
+		when "00110" =>              
+		    -- N non può essere nullo
 		    if istruzione(18 downto 3) = x"0000" then
 			     CSR(6)                  <= '1'; 
 			else
 			     M_N_S_reg.N_value       <= istruzione(18 downto 3);
 			     CSR(3)                 <= '0';
 			end if; 
+			
+--			████████████  SET_S  ██████████████
 
-		when "00111" =>              --set_s
+		when "00111" =>           
+		    -- S non può essere nullo   
 			if istruzione(18 downto 3) = x"0000" then
 			     CSR(8)                  <= '1'; 
 			else
@@ -404,10 +431,13 @@ begin
 			     CSR(5)                  <= '0';
 			end if; 
 
+--			████████████  LOAD  ██████████████
+
 		when "00010" =>              --load, leggo indirizzo matrice memoria main
 			read_reg_int 			<= '1';
 			addr_reg_int            <= std_logic_vector(unsigned(istruzione((8 + (REG_ADDR_WIDTH-1)) downto 8)) + 2);  -- non avendo una dimensione fissa, nell'istruzione sono 5 bit (8-12), ma devo leggere solo quelli necessari
-
+            
+            -- controllo del registro indirizzato
             if ( unsigned(istruzione((8 + (REG_ADDR_WIDTH-1)) downto 8)) >= (N_RAM_ADDR) ) then
                 CSR(1)              <= '1';
             end if;
@@ -415,6 +445,7 @@ begin
             if ( unsigned(istruzione((3 + (REG_ADDR_WIDTH-1)) downto 3)) >= (N_LOCAL_ADDR) ) then
                 CSR(2)              <= '1';
             end if;
+            -- fine controllo
             
 		when "01000" =>              --salvo elemento letto ciclo prima e leggo indirizzo memoria locale
 			indirizzo_mem_ls        <= data_reg_in;
@@ -425,14 +456,12 @@ begin
             
 
 		when "01001" =>              --leggo elemento dalla main memory e salvo elemento letto ciclo precedente
-			count 					<= count + 1;
 			
-			offset_indirizzo        <= offset_indirizzo + S_value_variable;
+            count 	<= count + 1;
 
-			--registri interni:
+			-- la prima volta bisogna leggere l'indirizzo della memoria locale
 			if count = 0 then
 				indirizzo_local_ls      <= data_reg_in;
-				
 
 				read_reg_int            <= '0';
 				offset_locale           := 0;
@@ -442,43 +471,45 @@ begin
                     CSR(9)              <= '1';
                 end if;
             
-                if (unsigned(data_reg_in(SPM_SEL_WIDTH+BANK_SEL_WIDTH+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH+BANK_SEL_WIDTH)) /= 0) then
+                if (unsigned(data_reg_in(SPM_SEL_WIDTH+BANK_SEL_WIDTH+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH+BANK_SEL_WIDTH)) /= 0) then --???
                     CSR(10)              <= '1';
                 end if;
             
                 if (unsigned(data_reg_in(ROW_SEL_WIDTH-1 downto 0)) > BANK_ADDR_WIDTH-1) then
                     CSR(11)              <= '1';
                 end if;
+                -- fine controllo
                 
 			end if;
 
+			
 			--main memory:
-			mem_acc_read_int            <= '1';
-			mem_acc_address_int         <= std_logic_vector(unsigned(indirizzo_mem_ls) + to_unsigned(offset_indirizzo, 32));
+			offset_indirizzo        <= offset_indirizzo + S_value_variable;
+			mem_acc_read_int        <= '1';
+			mem_acc_address_int     <= std_logic_vector(unsigned(indirizzo_mem_ls) + to_unsigned(offset_indirizzo, 32));
             
 			--memoria locale:
 			if count /= 0 then
 			    
-				if count mod SPM_NUM = 0 then
-                    
-					offset_locale   := offset_locale + 1;
-					
+			    -- dopo l'ultima SPM bisogna passare alla riga successiva
+				if count mod SPM_NUM = 0 then       
+					offset_locale   := offset_locale + 1;			
 				end if;
 
 				--APPUNTO: in realtà address to local potrebbe sostituire offset locale ed aumentare questo di uno quando serve... risparmia addizioni e addizionatori. Se non ci pensa il compilatore. DA PROVARE
 
+                -- "address_to_local" permette di aumentare l'indirizzo della memoria locale di 1
+                -- senza dover tener conto del formato degli indirizzi della stessa,
+                -- per incrementare gli indirizzi in maniera coerente con come è organizzata la memoria
 				address_test            := indirizzo_local_ls(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH) & indirizzo_local_ls(BANK_ADDR_WIDTH -1 downto 0);
 				address_to_local        := unsigned(address_test);
-				
-				--address_to_local        :=  unsigned(std_logic_vector(indirizzo_local_ls(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH)) & std_logic_vector(indirizzo_local_ls(BANK_ADDR_WIDTH -1 downto 0)));
 				address_to_local        :=  address_to_local + to_unsigned(offset_locale, BANK_ADDR_WIDTH + SIMD_BIT_N);
 
 				write_ls_int            <= '1';
 				spm_index_int           <= std_logic_vector(to_unsigned(count mod SPM_NUM, SPM_SEL_WIDTH));
+	
 				data_mem_out_int(count mod SPM_NUM)        <= mem_acc_data;
---				addr_result_int         <= std_logic_vector(unsigned(indirizzo_local_ls((ROW_SEL_WIDTH+BANK_SEL_WIDTH-1) downto 0)) + to_unsigned(offset_locale, (ROW_SEL_WIDTH+BANK_SEL_WIDTH-1))); --aumenta di 1 ogni spm_num cicli. Per evitare una divisione conto a "mano" con offset_locale
-			   	
-			   	--addr_result_int                                                    <= (others => '0');
+                -- l'indirizzo corretto va ricostruito da "address_to_local"
 			   	addr_result_int(SIMD_BIT_N+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH)   <= std_logic_vector(address_to_local(SIMD_BIT_N+BANK_ADDR_WIDTH-1 downto BANK_ADDR_WIDTH));
 			   	addr_result_int(BANK_ADDR_WIDTH-1 downto 0)                        <= std_logic_vector(address_to_local(BANK_ADDR_WIDTH-1 downto 0));
 			   	
@@ -491,31 +522,25 @@ begin
 
 			--memoria locale:
 			if count mod SPM_NUM = 0 then
-                    
 				offset_locale   := offset_locale + 1;
-					
 			end if;
-			
-			-- per incrementare gli indirizzi in maniera coerente con come è organizzata la memoria
 			
 			address_test            := indirizzo_local_ls(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH) & indirizzo_local_ls(BANK_ADDR_WIDTH -1 downto 0);
 			address_to_local        := unsigned(address_test);
-			--address_to_local        :=  unsigned(std_logic_vector(indirizzo_local_ls(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH)) & std_logic_vector(indirizzo_local_ls(BANK_ADDR_WIDTH -1 downto 0)));
 			address_to_local        :=  address_to_local + to_unsigned(offset_locale, BANK_ADDR_WIDTH + SIMD_BIT_N);
-			
 			
 			write_ls_int            	<= '1';
 			spm_index_int           	<= std_logic_vector(to_unsigned(count mod SPM_NUM, SPM_SEL_WIDTH));
-			data_mem_out_int(count mod SPM_NUM)        	<= mem_acc_data;
-			
-			--addr_result_int                                                    <= (others => '0');
+
+			data_mem_out_int(count mod SPM_NUM)        	                       <= mem_acc_data;			
             addr_result_int(SIMD_BIT_N+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH)   <= std_logic_vector(address_to_local(SIMD_BIT_N+BANK_ADDR_WIDTH-1 downto BANK_ADDR_WIDTH));
 			addr_result_int(BANK_ADDR_WIDTH-1 downto 0)                        <= std_logic_vector(address_to_local(BANK_ADDR_WIDTH-1 downto 0));
 			
 			istruzione                  <= (others => '0');
 			
-			
-		when "00011" =>               --store
+--			████████████  STORE  ██████████████
+
+		when "00011" =>               
 			read_reg_int 			<= '1';
 			addr_reg_int            <= std_logic_vector(unsigned(istruzione((3 + (REG_ADDR_WIDTH-1)) downto 3)) + 2 + N_RAM_ADDR);  -- non avendo una dimensione fissa, nell'istruzione sono 5 bit (8-12), ma devo leggere solo quelli necessari
     
@@ -539,7 +564,7 @@ begin
                 CSR(9)              <= '1';
             end if;
             
-            if (unsigned(data_reg_in(SPM_SEL_WIDTH+BANK_SEL_WIDTH+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH+BANK_SEL_WIDTH)) /= 0) then
+            if (unsigned(data_reg_in(SPM_SEL_WIDTH+BANK_SEL_WIDTH+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH+BANK_SEL_WIDTH)) /= 0) then  --???
                 CSR(10)              <= '1';
             end if;
             
@@ -566,14 +591,11 @@ begin
 			
 			address_test            := indirizzo_local_ls(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH) & indirizzo_local_ls(BANK_ADDR_WIDTH -1 downto 0);
 			address_to_local        := unsigned(address_test);
-
-			--address_to_local        :=  unsigned(std_logic_vector(indirizzo_local_ls(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH)) & std_logic_vector(indirizzo_local_ls(BANK_ADDR_WIDTH -1 downto 0)));
-			address_to_local        :=  address_to_local + to_unsigned(offset_locale, BANK_ADDR_WIDTH + SIMD_BIT_N);
+			address_to_local        := address_to_local + to_unsigned(offset_locale, BANK_ADDR_WIDTH + SIMD_BIT_N);
 
 			addr_operand_int(0)(SIMD_BIT_N+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH)   <= std_logic_vector(address_to_local(SIMD_BIT_N+BANK_ADDR_WIDTH-1 downto BANK_ADDR_WIDTH));
 			addr_operand_int(0)(BANK_ADDR_WIDTH-1 downto 0)                        <= std_logic_vector(address_to_local(BANK_ADDR_WIDTH-1 downto 0));   	
 
-			--addr_operand_int(0)      	<= std_logic_vector(unsigned(indirizzo_local_ls((ROW_SEL_WIDTH+BANK_SEL_WIDTH-1) downto 0)) + to_unsigned(offset_locale, (ROW_SEL_WIDTH+BANK_SEL_WIDTH-1)));
 			spm_index_int            	<= std_logic_vector(to_unsigned((count mod SPM_NUM), SPM_SEL_WIDTH));
 
 
@@ -594,7 +616,9 @@ begin
 			mem_acc_address_int     	<= std_logic_vector(unsigned(indirizzo_mem_ls) + to_unsigned(offset_indirizzo, 32));
 			istruzione                  <= (others => '0');
 
-		when "00100" =>               --add
+--			████████████  ADD  ██████████████
+
+		when "00100" =>               
 			--memoria locale:
 			read_reg_int            <= '1';
 			addr_reg_int			<= std_logic_vector(unsigned(istruzione((3 + (REG_ADDR_WIDTH-1)) downto 3))  + 2 + N_RAM_ADDR);
@@ -637,16 +661,15 @@ begin
 			end if;
 
 			--memoria locale:
+			
+			-- per incrementare l'indirizzo dell'operando 1
 			address_test1              := indirizzo_op1(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH) & indirizzo_op1(BANK_ADDR_WIDTH -1 downto 0);
 			address_to_localop1        := unsigned(address_test1);
-
-			--address_to_localop1        :=  unsigned(std_logic_vector(indirizzo_op1(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH)) & std_logic_vector(indirizzo_op1(BANK_ADDR_WIDTH -1 downto 0)));
 			address_to_localop1        :=  address_to_localop1 + to_unsigned(count, BANK_ADDR_WIDTH + SIMD_BIT_N);
 			
+			-- per incrementare l'indirizzo dell'operando 2
 			address_test2              := indirizzo_op2(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH) & indirizzo_op2(BANK_ADDR_WIDTH -1 downto 0);
 			address_to_localop2        := unsigned(address_test2);
-
-			--address_to_localop2        :=  unsigned(std_logic_vector(indirizzo_op2(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH)) & std_logic_vector(indirizzo_op2(BANK_ADDR_WIDTH -1 downto 0)));
 			address_to_localop2        :=  address_to_localop2 + to_unsigned(count, BANK_ADDR_WIDTH + SIMD_BIT_N);
 
 			--lettura:
@@ -665,17 +688,15 @@ begin
 			if count /= 0 then
 				write_sum_int           <= '1';
 
+                -- per incrementare l'indirizzo del risultato
                 address_test            := indirizzo_res(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH) & indirizzo_res(BANK_ADDR_WIDTH -1 downto 0);
 			    address_to_local        := unsigned(address_test);
-
-				--address_to_local        :=  unsigned(std_logic_vector(indirizzo_res(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH)) & std_logic_vector(indirizzo_res(BANK_ADDR_WIDTH -1 downto 0)));
 				address_to_local        :=  address_to_local + to_unsigned(offset_result, BANK_ADDR_WIDTH + SIMD_BIT_N);
 
                 --addr_result_int                                                    <= (others => '0');
 				addr_result_int(SIMD_BIT_N+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH)   <= std_logic_vector(address_to_local(SIMD_BIT_N+BANK_ADDR_WIDTH-1 downto BANK_ADDR_WIDTH));
 			   	addr_result_int(BANK_ADDR_WIDTH-1 downto 0)                        <= std_logic_vector(address_to_local(BANK_ADDR_WIDTH-1 downto 0));
 			   	 
-				--addr_result_int     <= std_logic_vector(unsigned(indirizzo_res((ROW_SEL_WIDTH+BANK_SEL_WIDTH-1) downto 0)) + to_unsigned(offset_result, (ROW_SEL_WIDTH+BANK_SEL_WIDTH-1)));
 				
 				for i in 0 to SPM_NUM-1 loop
 					data_mem_out_int(i) <= std_logic_vector(unsigned(data_mem_in(i)(0)) + unsigned(data_mem_in(i)(1)));
@@ -692,8 +713,6 @@ begin
 			
 			address_test            := indirizzo_res(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH) & indirizzo_res(BANK_ADDR_WIDTH -1 downto 0);
 			address_to_local        := unsigned(address_test);
-
-			--address_to_local        :=  unsigned(std_logic_vector(indirizzo_res(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH)) & std_logic_vector(indirizzo_res(BANK_ADDR_WIDTH -1 downto 0)));
 			address_to_local        :=  address_to_local + to_unsigned(offset_result, BANK_ADDR_WIDTH + SIMD_BIT_N);
 
             --addr_result_int                                                    <= (others => '0');
@@ -706,6 +725,8 @@ begin
 			end loop;
 			
 			istruzione                  <= (others => '0');
+
+--			████████████  ERROR STATE  ██████████████
 
         when "10010" =>
             write_reg_int       <= '1';
