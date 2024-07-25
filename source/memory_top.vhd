@@ -37,8 +37,8 @@ architecture Behavioral of local_memory is
 --  components
     component scratchpad_memory is
         generic (
-    	    SIMD            : natural  := 3;
-    	    BANK_ADDR_WIDTH : natural  := 14
+    	    SIMD            : natural;
+    	    BANK_ADDR_WIDTH : natural
 	    );
 	    port (
 	        data_out            : out   array_2d(1 downto 0)((ELEMENT_SIZE-1) downto 0);    -- da local a acceleratore

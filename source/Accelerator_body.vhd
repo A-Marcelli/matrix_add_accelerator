@@ -297,10 +297,19 @@ end process;
 
 data_path_proc: process(clk, reset)
 
-    variable offset_locale   : integer := 0;
-    variable S_value_variable: integer;
+    variable offset_locale   	: integer := 0;
+    variable S_value_variable	: integer;
     
-    variable address_to_local: unsigned(BANK_ADDR_WIDTH + SIMD_BIT_N-1 downto 0);
+    variable address_to_local 	: unsigned(BANK_ADDR_WIDTH + SIMD_BIT_N-1 downto 0);
+    variable address_to_localop1: unsigned(BANK_ADDR_WIDTH + SIMD_BIT_N-1 downto 0);
+    variable address_to_localop2: unsigned(BANK_ADDR_WIDTH + SIMD_BIT_N-1 downto 0);
+    
+    --test
+    --variable upper_slice        : std_logic_vector(SIMD_BIT_N-1 downto 0);
+    --variable lower_slice        : std_logic_vector(BANK_ADDR_WIDTH-1 downto 0);
+    variable address_test       : std_logic_vector(BANK_ADDR_WIDTH + SIMD_BIT_N-1 downto 0);
+    variable address_test1      : std_logic_vector(BANK_ADDR_WIDTH + SIMD_BIT_N-1 downto 0);
+    variable address_test2      : std_logic_vector(BANK_ADDR_WIDTH + SIMD_BIT_N-1 downto 0);
 
 begin
 
@@ -446,10 +455,6 @@ begin
 			--main memory:
 			mem_acc_read_int            <= '1';
 			mem_acc_address_int         <= std_logic_vector(unsigned(indirizzo_mem_ls) + to_unsigned(offset_indirizzo, 32));
-
-
-            
-            
             
 			--memoria locale:
 			if count /= 0 then
@@ -459,7 +464,13 @@ begin
 					offset_locale   := offset_locale + 1;
 					
 				end if;
-				address_to_local        :=  unsigned(indirizzo_local_ls(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH) & indirizzo_local_ls(BANK_ADDR_WIDTH -1 downto 0));
+
+				--APPUNTO: in realtà address to local potrebbe sostituire offset locale ed aumentare questo di uno quando serve... risparmia addizioni e addizionatori. Se non ci pensa il compilatore. DA PROVARE
+
+				address_test            := indirizzo_local_ls(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH) & indirizzo_local_ls(BANK_ADDR_WIDTH -1 downto 0);
+				address_to_local        := unsigned(address_test);
+				
+				--address_to_local        :=  unsigned(std_logic_vector(indirizzo_local_ls(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH)) & std_logic_vector(indirizzo_local_ls(BANK_ADDR_WIDTH -1 downto 0)));
 				address_to_local        :=  address_to_local + to_unsigned(offset_locale, BANK_ADDR_WIDTH + SIMD_BIT_N);
 
 				write_ls_int            <= '1';
@@ -467,10 +478,11 @@ begin
 				data_mem_out_int(count mod SPM_NUM)        <= mem_acc_data;
 --				addr_result_int         <= std_logic_vector(unsigned(indirizzo_local_ls((ROW_SEL_WIDTH+BANK_SEL_WIDTH-1) downto 0)) + to_unsigned(offset_locale, (ROW_SEL_WIDTH+BANK_SEL_WIDTH-1))); --aumenta di 1 ogni spm_num cicli. Per evitare una divisione conto a "mano" con offset_locale
 			   	
+			   	--addr_result_int                                                    <= (others => '0');
 			   	addr_result_int(SIMD_BIT_N+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH)   <= std_logic_vector(address_to_local(SIMD_BIT_N+BANK_ADDR_WIDTH-1 downto BANK_ADDR_WIDTH));
 			   	addr_result_int(BANK_ADDR_WIDTH-1 downto 0)                        <= std_logic_vector(address_to_local(BANK_ADDR_WIDTH-1 downto 0));
-			   	 
-        
+			   	
+			   	
 			end if;
 
 		when "01010" =>   --load ultimo elemento
@@ -485,7 +497,10 @@ begin
 			end if;
 			
 			-- per incrementare gli indirizzi in maniera coerente con come è organizzata la memoria
-			address_to_local        :=  unsigned(indirizzo_local_ls(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH) & indirizzo_local_ls(BANK_ADDR_WIDTH -1 downto 0));
+			
+			address_test            := indirizzo_local_ls(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH) & indirizzo_local_ls(BANK_ADDR_WIDTH -1 downto 0);
+			address_to_local        := unsigned(address_test);
+			--address_to_local        :=  unsigned(std_logic_vector(indirizzo_local_ls(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH)) & std_logic_vector(indirizzo_local_ls(BANK_ADDR_WIDTH -1 downto 0)));
 			address_to_local        :=  address_to_local + to_unsigned(offset_locale, BANK_ADDR_WIDTH + SIMD_BIT_N);
 			
 			
@@ -493,6 +508,7 @@ begin
 			spm_index_int           	<= std_logic_vector(to_unsigned(count mod SPM_NUM, SPM_SEL_WIDTH));
 			data_mem_out_int(count mod SPM_NUM)        	<= mem_acc_data;
 			
+			--addr_result_int                                                    <= (others => '0');
             addr_result_int(SIMD_BIT_N+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH)   <= std_logic_vector(address_to_local(SIMD_BIT_N+BANK_ADDR_WIDTH-1 downto BANK_ADDR_WIDTH));
 			addr_result_int(BANK_ADDR_WIDTH-1 downto 0)                        <= std_logic_vector(address_to_local(BANK_ADDR_WIDTH-1 downto 0));
 			
@@ -537,7 +553,7 @@ begin
 			if count = 0 then
 				indirizzo_mem_ls    <= data_reg_in;
 				read_reg_int        <= '0';
-				offset_locale       := 0;
+				offset_locale       := 0;   --per memoria locale
 			end if;
 
 			--memoria locale:
@@ -545,8 +561,19 @@ begin
 			if count mod SPM_NUM = 0 and count /= 0 then
 				offset_locale   	:= offset_locale + 1;
 			end if;
-			addr_operand_int(0)      	<= std_logic_vector(unsigned(indirizzo_local_ls((ROW_SEL_WIDTH+BANK_SEL_WIDTH-1) downto 0)) + to_unsigned(offset_locale, (ROW_SEL_WIDTH+BANK_SEL_WIDTH-1)));
+			
+			address_test            := indirizzo_local_ls(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH) & indirizzo_local_ls(BANK_ADDR_WIDTH -1 downto 0);
+			address_to_local        := unsigned(address_test);
+
+			--address_to_local        :=  unsigned(std_logic_vector(indirizzo_local_ls(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH)) & std_logic_vector(indirizzo_local_ls(BANK_ADDR_WIDTH -1 downto 0)));
+			address_to_local        :=  address_to_local + to_unsigned(offset_locale, BANK_ADDR_WIDTH + SIMD_BIT_N);
+
+			addr_operand_int(0)(SIMD_BIT_N+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH)   <= std_logic_vector(address_to_local(SIMD_BIT_N+BANK_ADDR_WIDTH-1 downto BANK_ADDR_WIDTH));
+			addr_operand_int(0)(BANK_ADDR_WIDTH-1 downto 0)                        <= std_logic_vector(address_to_local(BANK_ADDR_WIDTH-1 downto 0));   	
+
+			--addr_operand_int(0)      	<= std_logic_vector(unsigned(indirizzo_local_ls((ROW_SEL_WIDTH+BANK_SEL_WIDTH-1) downto 0)) + to_unsigned(offset_locale, (ROW_SEL_WIDTH+BANK_SEL_WIDTH-1)));
 			spm_index_int            	<= std_logic_vector(to_unsigned((count mod SPM_NUM), SPM_SEL_WIDTH));
+
 
 			--memoria centrale:
 			if count /= 0 then
@@ -555,7 +582,7 @@ begin
 				mem_acc_address_int     <= std_logic_vector(unsigned(indirizzo_mem_ls) + to_unsigned(offset_indirizzo, 32));
 			end if;
 
-		when "01101" =>
+		when "01101" =>            --store ultimo elemento
 			--memoria locale:
 			read_ls_int             	<= '0';
 
@@ -607,15 +634,45 @@ begin
 			end if;
 
 			--memoria locale:
+			address_test1              := indirizzo_op1(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH) & indirizzo_op1(BANK_ADDR_WIDTH -1 downto 0);
+			address_to_localop1        := unsigned(address_test1);
+
+			--address_to_localop1        :=  unsigned(std_logic_vector(indirizzo_op1(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH)) & std_logic_vector(indirizzo_op1(BANK_ADDR_WIDTH -1 downto 0)));
+			address_to_localop1        :=  address_to_localop1 + to_unsigned(count, BANK_ADDR_WIDTH + SIMD_BIT_N);
+			
+			address_test2              := indirizzo_op2(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH) & indirizzo_op2(BANK_ADDR_WIDTH -1 downto 0);
+			address_to_localop2        := unsigned(address_test2);
+
+			--address_to_localop2        :=  unsigned(std_logic_vector(indirizzo_op2(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH)) & std_logic_vector(indirizzo_op2(BANK_ADDR_WIDTH -1 downto 0)));
+			address_to_localop2        :=  address_to_localop2 + to_unsigned(count, BANK_ADDR_WIDTH + SIMD_BIT_N);
+
 			--lettura:
 			read_sum_int            <= '1';
-			addr_operand_int(0)     <= std_logic_vector(unsigned(indirizzo_op1((ROW_SEL_WIDTH+BANK_SEL_WIDTH-1) downto 0)) + to_unsigned(count, (ROW_SEL_WIDTH+BANK_SEL_WIDTH-1)));
-			addr_operand_int(1)     <= std_logic_vector(unsigned(indirizzo_op2((ROW_SEL_WIDTH+BANK_SEL_WIDTH-1) downto 0)) + to_unsigned(count, (ROW_SEL_WIDTH+BANK_SEL_WIDTH-1)));
+
+			addr_operand_int(0)(SIMD_BIT_N+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH)   <= std_logic_vector(address_to_localop1(SIMD_BIT_N+BANK_ADDR_WIDTH-1 downto BANK_ADDR_WIDTH));
+			addr_operand_int(0)(BANK_ADDR_WIDTH-1 downto 0)                        <= std_logic_vector(address_to_localop1(BANK_ADDR_WIDTH-1 downto 0));
+			
+			addr_operand_int(1)(SIMD_BIT_N+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH)   <= std_logic_vector(address_to_localop2(SIMD_BIT_N+BANK_ADDR_WIDTH-1 downto BANK_ADDR_WIDTH));
+			addr_operand_int(1)(BANK_ADDR_WIDTH-1 downto 0)                        <= std_logic_vector(address_to_localop2(BANK_ADDR_WIDTH-1 downto 0));
+			   	 
+			--addr_operand_int(0)     <= std_logic_vector(unsigned(indirizzo_op1((ROW_SEL_WIDTH+BANK_SEL_WIDTH-1) downto 0)) + to_unsigned(count, (ROW_SEL_WIDTH+BANK_SEL_WIDTH-1)));
+			--addr_operand_int(1)     <= std_logic_vector(unsigned(indirizzo_op2((ROW_SEL_WIDTH+BANK_SEL_WIDTH-1) downto 0)) + to_unsigned(count, (ROW_SEL_WIDTH+BANK_SEL_WIDTH-1)));
 
 			--somma e scrittura
 			if count /= 0 then
 				write_sum_int           <= '1';
-				addr_result_int     <= std_logic_vector(unsigned(indirizzo_res((ROW_SEL_WIDTH+BANK_SEL_WIDTH-1) downto 0)) + to_unsigned(offset_result, (ROW_SEL_WIDTH+BANK_SEL_WIDTH-1)));
+
+                address_test            := indirizzo_res(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH) & indirizzo_res(BANK_ADDR_WIDTH -1 downto 0);
+			    address_to_local        := unsigned(address_test);
+
+				--address_to_local        :=  unsigned(std_logic_vector(indirizzo_res(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH)) & std_logic_vector(indirizzo_res(BANK_ADDR_WIDTH -1 downto 0)));
+				address_to_local        :=  address_to_local + to_unsigned(offset_result, BANK_ADDR_WIDTH + SIMD_BIT_N);
+
+                --addr_result_int                                                    <= (others => '0');
+				addr_result_int(SIMD_BIT_N+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH)   <= std_logic_vector(address_to_local(SIMD_BIT_N+BANK_ADDR_WIDTH-1 downto BANK_ADDR_WIDTH));
+			   	addr_result_int(BANK_ADDR_WIDTH-1 downto 0)                        <= std_logic_vector(address_to_local(BANK_ADDR_WIDTH-1 downto 0));
+			   	 
+				--addr_result_int     <= std_logic_vector(unsigned(indirizzo_res((ROW_SEL_WIDTH+BANK_SEL_WIDTH-1) downto 0)) + to_unsigned(offset_result, (ROW_SEL_WIDTH+BANK_SEL_WIDTH-1)));
 				
 				for i in 0 to SPM_NUM-1 loop
 					data_mem_out_int(i) <= std_logic_vector(unsigned(data_mem_in(i)(0)) + unsigned(data_mem_in(i)(1)));
@@ -629,7 +686,18 @@ begin
 			read_sum_int        <= '0';
 
 			write_sum_int           <= '1';
-			addr_result_int     <= std_logic_vector(unsigned(indirizzo_res((ROW_SEL_WIDTH+BANK_SEL_WIDTH-1) downto 0)) + to_unsigned(offset_result, (ROW_SEL_WIDTH+BANK_SEL_WIDTH-1)));
+			
+			address_test            := indirizzo_res(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH) & indirizzo_res(BANK_ADDR_WIDTH -1 downto 0);
+			address_to_local        := unsigned(address_test);
+
+			--address_to_local        :=  unsigned(std_logic_vector(indirizzo_res(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH)) & std_logic_vector(indirizzo_res(BANK_ADDR_WIDTH -1 downto 0)));
+			address_to_local        :=  address_to_local + to_unsigned(offset_result, BANK_ADDR_WIDTH + SIMD_BIT_N);
+
+            --addr_result_int                                                    <= (others => '0');
+			addr_result_int(SIMD_BIT_N+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH)   <= std_logic_vector(address_to_local(SIMD_BIT_N+BANK_ADDR_WIDTH-1 downto BANK_ADDR_WIDTH));
+			addr_result_int(BANK_ADDR_WIDTH-1 downto 0)                        <= std_logic_vector(address_to_local(BANK_ADDR_WIDTH-1 downto 0));
+			   	 
+			--addr_result_int     <= std_logic_vector(unsigned(indirizzo_res((ROW_SEL_WIDTH+BANK_SEL_WIDTH-1) downto 0)) + to_unsigned(offset_result, (ROW_SEL_WIDTH+BANK_SEL_WIDTH-1)));
 			for i in 0 to SPM_NUM-1 loop
 				data_mem_out_int(i) <= std_logic_vector(unsigned(data_mem_in(i)(0)) + unsigned(data_mem_in(i)(1)));
 			end loop;
