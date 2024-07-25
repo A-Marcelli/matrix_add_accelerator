@@ -512,6 +512,8 @@ begin
             addr_result_int(SIMD_BIT_N+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH)   <= std_logic_vector(address_to_local(SIMD_BIT_N+BANK_ADDR_WIDTH-1 downto BANK_ADDR_WIDTH));
 			addr_result_int(BANK_ADDR_WIDTH-1 downto 0)                        <= std_logic_vector(address_to_local(BANK_ADDR_WIDTH-1 downto 0));
 			
+			istruzione                  <= (others => '0');
+			
 			
 		when "00011" =>               --store
 			read_reg_int 			<= '1';
@@ -590,6 +592,7 @@ begin
 			mem_acc_write_int    		<= '1';
 			mem_acc_data_int        	<= data_mem_in(to_integer(unsigned(spm_index)))(0);
 			mem_acc_address_int     	<= std_logic_vector(unsigned(indirizzo_mem_ls) + to_unsigned(offset_indirizzo, 32));
+			istruzione                  <= (others => '0');
 
 		when "00100" =>               --add
 			--memoria locale:
@@ -701,6 +704,8 @@ begin
 			for i in 0 to SPM_NUM-1 loop
 				data_mem_out_int(i) <= std_logic_vector(unsigned(data_mem_in(i)(0)) + unsigned(data_mem_in(i)(1)));
 			end loop;
+			
+			istruzione                  <= (others => '0');
 
         when "10010" =>
             write_reg_int       <= '1';
@@ -708,6 +713,7 @@ begin
             addr_reg_int        <= std_logic_vector(to_unsigned(1, REG_ADDR_WIDTH));
             
             read_reg_int        <= '0';
+            istruzione          <= (others => '0');
 
 		when others =>
 			null;
