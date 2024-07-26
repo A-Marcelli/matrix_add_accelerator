@@ -131,14 +131,6 @@ begin
         data_reg_in <= (others => '0');
         mem_acc_data <= (others => 'Z');  -- High impedance
         reset <= '0';
-        --read_ls <= '0';
-        --write_ls <= '0';
-        --read_sum <= '0';
-        --write_sum <= '0';
-        --read_reg <= '0';
-        --write_reg <= '0';
-        --mem_acc_read <= '0';
-        --mem_acc_write <= '0';
 
         -- Apply reset
         reset <= '1';

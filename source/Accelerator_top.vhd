@@ -24,7 +24,7 @@ entity matrix_add_accelerator is
         cpu_addr           : in    std_logic_vector((integer(ceil(log2(real(N_RAM_ADDR + N_LOCAL_ADDR + 2)))) -1) downto 0);    --CSR, instruction reg and addres registers
         cpu_write          : in    std_logic; 
         cpu_read           : in    std_logic; 
-  		cpu_acc_busy       : out   std_logic; 
+        cpu_acc_busy       : out   std_logic; 
   		----------------------------------------------------------------------------
   		mem_acc_address    : out   std_logic_vector(31 downto 0);
   		mem_acc_data       : inout std_logic_vector(31 downto 0); -- input = lettura da memoria, output = scrittura in memoria

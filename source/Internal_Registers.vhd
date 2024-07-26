@@ -7,9 +7,9 @@ use work.Byte_Busters.all;
 entity acc_registers is
     generic(
 
-        REG_ADDR_WIDTH  : natural   := 3;     -- numero di bit usati per indirizzare il register file
-        N_RAM_ADDR      : natural   := 3;     --MP, number of registers that contain a RAM cell address
-        N_LOCAL_ADDR    : natural   := 3      --MP, number of registers that contain a local memory cell address (rows)
+        REG_ADDR_WIDTH  : natural;     -- numero di bit usati per indirizzare il register file
+        N_RAM_ADDR      : natural;     --MP, number of registers that contain a RAM cell address
+        N_LOCAL_ADDR    : natural     --MP, number of registers that contain a local memory cell address (rows)
     );
     
     port(
@@ -99,6 +99,11 @@ begin
             cpu_addr_value:= to_integer(unsigned(cpu_addr));
             acc_addr_value:= to_integer(unsigned(acc_addr));
             
+             
+            regs(0) <= (others => '0');  --TEST
+
+            
+            
             if acc_write = '1' then             -- the accelerator has priority. 
 
                 if acc_addr_value = 1 then
@@ -133,7 +138,7 @@ begin
                     if acc_addr_value <= (N_RAM_ADDR + N_LOCAL_ADDR + 1) then
                         acc_data_out_int <= regs(acc_addr_value);
                     end if;
-                    
+                                    
                 elsif cpu_read = '1' then
                 
                     if cpu_addr_value <= (N_RAM_ADDR + N_LOCAL_ADDR + 1) then
