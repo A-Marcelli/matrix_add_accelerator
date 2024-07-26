@@ -93,13 +93,14 @@ BEGIN
 
         -- Perform some read and write operations (if needed)
         WR <= '1';
-        Addr <= starting_addr_op1;  -- Address for op1
+        Addr <= starting_addr_op2;  -- Address for op1
         Data <= x"00000001";         -- Example data (change as needed)
         wait for clk_period;
         WR <= '0';
         Data <= (others => 'Z');
-        RD <= '1';                   -- Read operation
         wait for clk_period;
+        RD <= '1';                   -- Read operation
+        wait for clk_period*3;
         RD <= '0';
         wait for clk_period;
 
