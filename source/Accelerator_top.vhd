@@ -11,8 +11,8 @@ entity matrix_add_accelerator is
     	BANK_ADDR_WIDTH : natural := 8;    -- address size of each BANK min: 4, max: 16 
     	SIMD            : natural := 2;    -- banks in each spm, solo potenze di 2. max 256                    -- da errore se uguale a 1
         
-        N_RAM_ADDR      : natural := 3;     --number of registers that contain a RAM cell address
-        N_LOCAL_ADDR    : natural := 3      --number of registers that contain a local memory cell address  --la somma dei due registri deve fare massimo 30
+      N_RAM_ADDR      : natural := 3;     --number of registers that contain a RAM cell address
+      N_LOCAL_ADDR    : natural := 3      --number of registers that contain a local memory cell address  --la somma dei due registri deve fare massimo 30
           
 		 );
   	port (
@@ -40,8 +40,8 @@ entity matrix_add_accelerator is
 
  architecture mat_acc of matrix_add_accelerator is 
  	--constants
-    constant REG_ADDR_WIDTH : natural := integer(ceil(log2(real(N_RAM_ADDR+N_LOCAL_ADDR+2)))); --numero di bit usati per indirizzare il register file
- 	
+   constant REG_ADDR_WIDTH       : natural := integer(ceil(log2(real(N_RAM_ADDR+N_LOCAL_ADDR+2)))); --numero di bit usati per indirizzare il register file
+ 	constant LAST_ADDR_EACH_BANK  : natural := (2**BANK_ADDR_WIDTH) - 1; --ultimo indirizzo di un banco di memoria
 
    --signals
    signal addr_operand        : array_2d(1 downto 0)((ROW_SEL_WIDTH + BANK_SEL_WIDTH - 1) downto 0);
@@ -71,6 +71,7 @@ entity matrix_add_accelerator is
       SPM_NUM              : natural;
       N_RAM_ADDR           : natural;
       N_LOCAL_ADDR         : natural;
+      LAST_ADDR_EACH_BANK  : natural;
       REG_ADDR_WIDTH       : natural
       );
       
@@ -171,6 +172,7 @@ entity matrix_add_accelerator is
       SPM_NUM           => SPM_NUM,
       N_RAM_ADDR        => N_RAM_ADDR,
       N_LOCAL_ADDR      => N_LOCAL_ADDR,
+      LAST_ADDR_EACH_BANK  => LAST_ADDR_EACH_BANK,
       REG_ADDR_WIDTH    => REG_ADDR_WIDTH
       )
    port map(

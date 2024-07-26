@@ -13,6 +13,7 @@ entity acc_logic is
     	
     	N_RAM_ADDR      	: natural;
         N_LOCAL_ADDR    	: natural;
+        LAST_ADDR_EACH_BANK : natural;
     	REG_ADDR_WIDTH      : natural
 	);
 		
@@ -209,9 +210,9 @@ begin
 				-- controllo dell'indirizzo
                 if (unsigned(data_reg_in(BANK_SEL_WIDTH+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH)) > SIMD-1) then
                     next_state      <= "10010";
-                elsif (unsigned(data_reg_in(SPM_SEL_WIDTH+BANK_SEL_WIDTH+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH+BANK_SEL_WIDTH)) /= 0) then --???
+                elsif (unsigned(data_reg_in(SPM_SEL_WIDTH+BANK_SEL_WIDTH+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH+BANK_SEL_WIDTH)) /= 0) then
                     next_state      <= "10010";
-                elsif (unsigned(data_reg_in(ROW_SEL_WIDTH-1 downto 0)) > BANK_ADDR_WIDTH-1) then
+                elsif (unsigned(data_reg_in(ROW_SEL_WIDTH-1 downto 0)) > LAST_ADDR_EACH_BANK-1) then
                     next_state      <= "10010";
                 else
                     next_state  <= "01001";
@@ -248,9 +249,9 @@ begin
 			-- controllo dell'indirizzo
             if (unsigned(data_reg_in(BANK_SEL_WIDTH+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH)) > SIMD-1) then
                 next_state      <= "10010";
-            elsif (unsigned(data_reg_in(SPM_SEL_WIDTH+BANK_SEL_WIDTH+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH+BANK_SEL_WIDTH)) /= 0) then --???
+            elsif (unsigned(data_reg_in(SPM_SEL_WIDTH+BANK_SEL_WIDTH+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH+BANK_SEL_WIDTH)) /= 0) then
                 next_state      <= "10010";
-            elsif (unsigned(data_reg_in(ROW_SEL_WIDTH-1 downto 0)) > BANK_ADDR_WIDTH-1) then
+            elsif (unsigned(data_reg_in(ROW_SEL_WIDTH-1 downto 0)) > LAST_ADDR_EACH_BANK-1) then
                 next_state      <= "10010";
             end if;
             -- fine controllo
@@ -471,11 +472,11 @@ begin
                     CSR(9)              <= '1';
                 end if;
             
-                if (unsigned(data_reg_in(SPM_SEL_WIDTH+BANK_SEL_WIDTH+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH+BANK_SEL_WIDTH)) /= 0) then --???
+                if (unsigned(data_reg_in(SPM_SEL_WIDTH+BANK_SEL_WIDTH+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH+BANK_SEL_WIDTH)) /= 0) then
                     CSR(10)              <= '1';
                 end if;
             
-                if (unsigned(data_reg_in(ROW_SEL_WIDTH-1 downto 0)) > BANK_ADDR_WIDTH-1) then
+                if (unsigned(data_reg_in(ROW_SEL_WIDTH-1 downto 0)) > LAST_ADDR_EACH_BANK-1) then
                     CSR(11)              <= '1';
                 end if;
                 -- fine controllo
@@ -564,11 +565,11 @@ begin
                 CSR(9)              <= '1';
             end if;
             
-            if (unsigned(data_reg_in(SPM_SEL_WIDTH+BANK_SEL_WIDTH+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH+BANK_SEL_WIDTH)) /= 0) then  --???
+            if (unsigned(data_reg_in(SPM_SEL_WIDTH+BANK_SEL_WIDTH+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH+BANK_SEL_WIDTH)) /= 0) then
                 CSR(10)              <= '1';
             end if;
             
-            if (unsigned(data_reg_in(ROW_SEL_WIDTH-1 downto 0)) > BANK_ADDR_WIDTH-1) then
+            if (unsigned(data_reg_in(ROW_SEL_WIDTH-1 downto 0)) > LAST_ADDR_EACH_BANK-1) then
                 CSR(11)              <= '1';
             end if;
 

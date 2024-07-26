@@ -3,8 +3,8 @@ USE ieee.std_logic_1164.ALL;
 USE std.textio.ALL;
 USE ieee.numeric_std.ALL;
 
-ENTITY RAM is
-	PORT(
+entity RAM is
+	port(
 		CK: in std_logic;
 		RESET: in std_logic;
 		RD: in std_logic;
@@ -12,86 +12,106 @@ ENTITY RAM is
 		Addr: in std_logic_vector(31 downto 0);
 		Load:in std_logic;    --file
 		Store:in std_logic;   --file
-		Data: inout std_logic_vector(31 downto 0)
+		Data: inout std_logic_vector(31 downto 0);
+		M_dim : in natural; 	--per passare M, N e S
+		N_dim : in natural; 	--per passare M, N e S
+		S_val : in natural;  	--per passare M, N e S
+		starting_addr_op1 : in std_logic_vector(31 downto 0); -- per passare indirizzo iniziale matrice op1 per salvarla  da file
+		starting_addr_op2 : in std_logic_vector(31 downto 0); -- per passare indirizzo iniziale matrice op2 per salvarla  da file
+		starting_addr_res : in std_logic_vector(31 downto 0)  -- per passare indirizzo iniziale matrice res per scriverla su file
 		);
-END RAM;
+end RAM;
 
-ARCHITECTURE RAM of RAM IS -- this architecture is purely behavioral, not intended for synthesis
+architecture RAM of RAM is -- this architecture is purely behavioral, not intended for synthesis
 
-TYPE CELLE IS ARRAY (65535 downto 0) of std_logic_vector(31 downto 0);
-SIGNAL mem:CELLE;
-SIGNAL appo: std_logic_vector(7 downto 0);
+type CELLE is array (2047 downto 0) of std_logic_vector(31 downto 0);
+signal mem 		: CELLE;
+signal num_el : natural := 0;
 
 
 --OPERAND1
-  PROCEDURE load_matrix(SIGNAL memo: out CELLE) IS -- this is to load the operand matrix from file to memory 
-  	VARIABLE L: line;	--DA USARE UN WHILE FINO A QUANDO NON FINISCE DI CARICARE MATRICE
-  	VARIABLE y: integer;
+  procedure load_op1(signal memo: out CELLE) is -- this is to load the operand1 matrix from file to memory 
+  	variable L: line;
+  	variable y: integer;
   	FILE reading: text open read_mode is "in1.txt";
-  BEGIN
-  	FOR index in 0 to 262143 --DA CAMBIARE
-  		LOOP
+  begin
+  	for index in 0 to num_el-1
+  		loop
   			exit when endfile(reading);
   			readline(reading,L);
   			read(L,y);
-  			memo(index)<=NOT(std_logic_vector(to_unsigned(y,8)));                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
-  		END LOOP;		
-  END load_image;
+  			memo(to_integer(unsigned(starting_addr_op1)) + index*S_val) <= std_logic_vector(to_unsigned(y,32));                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+  		end loop;		
+  end load_op1;
+
 --OPERAND2
-  PROCEDURE load_matrix(SIGNAL memo: out CELLE) IS -- this is to load the operand matrix from file to memory 
-  	VARIABLE L: line;	--DA USARE UN WHILE FINO A QUANDO NON FINISCE DI CARICARE MATRICE
-  	VARIABLE y: integer;
+  procedure load_op2(signal memo: out CELLE) is -- this is to load the operand2 matrix from file to memory 
+  	variable L: line;
+  	variable y: integer;
   	FILE reading: text open read_mode is "in2.txt";
-  BEGIN
-  	FOR index in 0 to 262143  --DA CAMBIARE
-  		LOOP
+  begin
+  	for index in 0 to num_el-1
+  		loop
   			exit when endfile(reading);
   			readline(reading,L);
   			read(L,y);
-  			memo(index)<=NOT(std_logic_vector(to_unsigned(y,8)));                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
-  		END LOOP;		
-  END load_image;
+  			memo(to_integer(unsigned(starting_addr_op2)) + index*S_val) <= std_logic_vector(to_unsigned(y,32));                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+  		end loop;		
+  end load_op2;
   
   --RESULT MATRIX
-  PROCEDURE store_matrix(	SIGNAL memo: in CELLE )IS -- this is to store the resulting matrix from memory to file
-  	VARIABLE S: line;	--DA USARE UN WHILE FINO A QUANDO NON FINISCE DI CARICARE MATRICE
-  	VARIABLE x: integer; 
+  procedure store_matrix(signal memo: in CELLE ) is -- this is to store the resulting matrix from memory to file
+  	variable S: line;
+  	variable x: integer; 
   	FILE written: text open write_mode is "out.txt";
-  BEGIN
-  	FOR index in 262144 to 524287  --DA CAMBIARE
-  		LOOP
-  			x:= to_integer(unsigned(not(memo(index))));
+ 
+  begin
+    
+  	for index in 0 to num_el-1
+  		loop
+  			x:= to_integer(unsigned(memo(to_integer(unsigned(starting_addr_res)) + index*S_val)));
+  			
+  			-- Debug output
+            --report "Storing value: " & integer'image(x);
+            
   			write(S,x);
   			writeline(written,S);
-  		END LOOP;		
-  END store_image;
+  		end loop;		
+  		--close written;
+  end store_matrix;
   
-BEGIN
+begin
 
-	PROCESS(CK,RESET,WR,Load,Store) 
-  	BEGIN
+num_el <= M_dim * N_dim;
+
+	process(CK,RESET,WR,Load,Store) 
+  	begin
   	if RESET='1' then
-  		clear:  FOR index in 0 to 65535
-  			LOOP -- this loop is entirely executed in one delta time
-  				mem(index)<="00000000";
-  			END LOOP clear;	
-  			Data<="ZZZZZZZZ";
+  		clear:  FOR index in 0 to 2047
+  			loop -- this loop is entirely executed in one delta time
+  				mem(index)<=x"00000000";
+  			end loop clear;	
+  			Data <= (others => 'Z');
   	elsif WR='1' and RD='0' then
-  		Data<="ZZZZZZZZ";
+  		Data <= (others => 'Z');
   		if CK'EVENT and CK='1' then		
   			mem(to_integer(unsigned(Addr)))<= Data;
-  		END if;	
+  		end if;	
   	elsif WR='0' and RD='1' then 
   		--if CK'EVENT and CK='1' then
   			Data<=mem(to_integer(unsigned(Addr)));
-  		--END if;
-  	END if;
-  	if Load='1' then	
-  		load_matrix(mem);
-  	END if;
-  	if Store='1' then	
-  		store_matrix(mem);
-  	END if;
-	END PROCESS;
+  		--end if;
+  	end if;
 
-END RAM;
+  	-- loading e storing delle matrici in memoria centrale
+  	if Load='1' then	
+  		load_op1(mem);
+  		load_op2(mem);
+  	end if;
+  	if Store='1' then	
+  	    --report "Store signal asserted. Executing store_matrix.";
+  		store_matrix(mem);
+  	end if;
+	end process;
+
+end RAM;
