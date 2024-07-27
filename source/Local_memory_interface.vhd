@@ -33,11 +33,13 @@ begin
 
 
     read_signal:process(all)
+    variable spm_index_var : natural;
     begin
+        spm_index_var := to_integer(unsigned(spm_index));
         read_mem_int <= (others => '0');
 
         if read_ls = '1' then
-            read_mem_int(to_integer(unsigned(spm_index))) <= '1';
+            read_mem_int(spm_index_var) <= '1';
         elsif read_sum = '1' then
             read_mem_int <= (others => '1');
         else
@@ -46,11 +48,13 @@ begin
     end process;
              
     write_signal:process(all)
+    variable spm_index_var : natural;
     begin
+        spm_index_var := to_integer(unsigned(spm_index));
         write_mem_int <= (others => '0');
 
         if write_ls = '1' then
-            write_mem_int(to_integer(unsigned(spm_index))) <= '1';
+            write_mem_int(spm_index_var) <= '1';
         elsif write_sum = '1' then
             write_mem_int <= (others => '1');
         else

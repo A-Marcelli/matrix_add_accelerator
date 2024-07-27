@@ -203,7 +203,7 @@ begin
 			
 			
 		when "01001" =>
-			if count = (ultimo_elemento-2) then    --l'ultimo elemento viene letto allo stato successivo
+			if count = (ultimo_elemento-1) then    --l'ultimo elemento viene letto allo stato successivo
 				next_state <= "01010";
 			elsif count = 0 then
 			
@@ -257,7 +257,7 @@ begin
             -- fine controllo
 			
 		when "01100" =>
-			if count = (ultimo_elemento-2) then
+			if count = (ultimo_elemento-1) then --DA CONTROLLARE
 				next_state <= "01101";
 			else 
 				next_state <= "01100";
@@ -364,7 +364,8 @@ begin
         CSR                 <= x"00000038";
         write_reg_int       <= '0';
 	elsif rising_edge(clk) then
-        S_value_variable        := to_integer(unsigned(M_N_S_reg.S_value & '0' & '0'));
+        --S_value_variable        := to_integer(unsigned(M_N_S_reg.S_value & '0' & '0'));
+        S_value_variable        := to_integer(unsigned(M_N_S_reg.S_value));
 
 		case state is 
 
@@ -492,10 +493,7 @@ begin
 			--memoria locale:
 			if count /= 0 then
 			    
-			    -- dopo l'ultima SPM bisogna passare alla riga successiva
-				if count mod SPM_NUM = 0 then       
-					offset_locale   := offset_locale + 1;			
-				end if;
+
 
 				--APPUNTO: in realtà address to local potrebbe sostituire offset locale ed aumentare questo di uno quando serve... risparmia addizioni e addizionatori. Se non ci pensa il compilatore. DA PROVARE
 
@@ -507,14 +505,19 @@ begin
 				address_to_local        :=  address_to_local + to_unsigned(offset_locale, BANK_ADDR_WIDTH + SIMD_BIT_N);
 
 				write_ls_int            <= '1';
-				spm_index_int           <= std_logic_vector(to_unsigned(count mod SPM_NUM, SPM_SEL_WIDTH));
+				spm_index_int           <= std_logic_vector(to_unsigned((count-1) mod SPM_NUM, SPM_SEL_WIDTH));
 	
-				data_mem_out_int(count mod SPM_NUM)        <= mem_acc_data;
+				data_mem_out_int((count-1) mod SPM_NUM)        <= mem_acc_data;
                 -- l'indirizzo corretto va ricostruito da "address_to_local"
 			   	addr_result_int(SIMD_BIT_N+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH)   <= std_logic_vector(address_to_local(SIMD_BIT_N+BANK_ADDR_WIDTH-1 downto BANK_ADDR_WIDTH));
 			   	addr_result_int(BANK_ADDR_WIDTH-1 downto 0)                        <= std_logic_vector(address_to_local(BANK_ADDR_WIDTH-1 downto 0));
 			   	
-			   	
+
+			   	-- dopo l'ultima SPM bisogna passare alla riga successiva
+				if count mod SPM_NUM = 0 then       
+					offset_locale   := offset_locale + 1;			
+				end if;
+
 			end if;
 
 		when "01010" =>   --load ultimo elemento
@@ -522,18 +525,18 @@ begin
 			mem_acc_read_int            <= '0';
 
 			--memoria locale:
-			if count mod SPM_NUM = 0 then
-				offset_locale   := offset_locale + 1;
-			end if;
+			--if count mod SPM_NUM = 0 then
+			--	offset_locale   := offset_locale + 1;
+			--end if;
 			
 			address_test            := indirizzo_local_ls(SIMD_BIT_N + ROW_SEL_WIDTH -1 downto ROW_SEL_WIDTH) & indirizzo_local_ls(BANK_ADDR_WIDTH -1 downto 0);
 			address_to_local        := unsigned(address_test);
 			address_to_local        :=  address_to_local + to_unsigned(offset_locale, BANK_ADDR_WIDTH + SIMD_BIT_N);
 			
 			write_ls_int            	<= '1';
-			spm_index_int           	<= std_logic_vector(to_unsigned(count mod SPM_NUM, SPM_SEL_WIDTH));
+			spm_index_int           	<= std_logic_vector(to_unsigned((count-1) mod SPM_NUM, SPM_SEL_WIDTH));
 
-			data_mem_out_int(count mod SPM_NUM)        	                       <= mem_acc_data;			
+			data_mem_out_int((count-1) mod SPM_NUM)        	                       <= mem_acc_data;			
             addr_result_int(SIMD_BIT_N+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH)   <= std_logic_vector(address_to_local(SIMD_BIT_N+BANK_ADDR_WIDTH-1 downto BANK_ADDR_WIDTH));
 			addr_result_int(BANK_ADDR_WIDTH-1 downto 0)                        <= std_logic_vector(address_to_local(BANK_ADDR_WIDTH-1 downto 0));
 			
@@ -575,8 +578,7 @@ begin
 
 		when "01100" =>
 			count 					<= count + 1;
-			offset_indirizzo        <= offset_indirizzo + S_value_variable;
-
+			
 			--registri interni:
 			if count = 0 then
 				indirizzo_mem_ls    <= data_reg_in;
@@ -605,6 +607,7 @@ begin
 				mem_acc_write_int    	<= '1';
 				mem_acc_data_int        <= data_mem_in(to_integer(unsigned(spm_index)))(0);
 				mem_acc_address_int     <= std_logic_vector(unsigned(indirizzo_mem_ls) + to_unsigned(offset_indirizzo, 32));
+				offset_indirizzo        <= offset_indirizzo + S_value_variable;
 			end if;
 
 		when "01101" =>            --store ultimo elemento

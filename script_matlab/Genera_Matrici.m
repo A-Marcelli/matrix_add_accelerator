@@ -4,7 +4,7 @@ cols = randi([1, 100]);  % Numero di colonne casuale tra 1 e 10
 
 % Crea una matrice casuale di interi
 A = randi([1, 100], rows, cols);  % Matrice con valori casuali tra 1 e 100
-filename = 'matriceA.txt';
+filename = 'in1.txt';
 
 % Specifica il nome del file di output
 fileID = fopen(filename, 'w');
@@ -24,7 +24,7 @@ disp(['Matrice A casuale di dimensioni ', num2str(rows), 'x', num2str(cols), ' s
 B = randi([1, 100], rows, cols);  % Matrice con valori casuali tra 1 e 100
 
 % Specifica il nome del file di output
-filename = 'matriceB.txt';
+filename = 'in2.txt';
 
 % Scrive la matrice su un file di testo
 fileID = fopen(filename, 'w');

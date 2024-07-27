@@ -13,7 +13,7 @@ architecture behavior of tb is
 -- Component Declaration for the accelerator
     component matrix_add_accelerator
     generic(
-        SPM_NUM         : natural := 2;
+        SPM_NUM         : natural := 5;
         BANK_ADDR_WIDTH : natural := 8;
         SIMD            : natural := 2;
 
@@ -99,7 +99,7 @@ architecture behavior of tb is
     -- Instantiate the accelerator
     acc: matrix_add_accelerator
     generic map (
-        SPM_NUM         => 2,
+        SPM_NUM         => 5,
         BANK_ADDR_WIDTH => 8,
         SIMD            => 2,
         N_RAM_ADDR      => 3,
