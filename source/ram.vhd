@@ -24,7 +24,7 @@ end RAM;
 
 architecture RAM of RAM is -- this architecture is purely behavioral, not intended for synthesis
 
-type CELLE is array (2047 downto 0) of std_logic_vector(31 downto 0);
+type CELLE is array (4095 downto 0) of std_logic_vector(31 downto 0);
 signal mem 		: CELLE;
 signal num_el : natural := 0;
 
@@ -87,7 +87,7 @@ num_el <= M_dim * N_dim;
 	process(CK,RESET,WR,Load,Store) 
   	begin
   	if RESET='1' then
-  		clear:  FOR index in 0 to 2047
+  		clear:  FOR index in 0 to 4095
   			loop -- this loop is entirely executed in one delta time
   				mem(index)<=x"00000000";
   			end loop clear;	

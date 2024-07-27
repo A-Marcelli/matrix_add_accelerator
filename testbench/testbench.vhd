@@ -13,9 +13,9 @@ architecture behavior of tb is
 -- Component Declaration for the accelerator
     component matrix_add_accelerator
     generic(
-        SPM_NUM         : natural := 5;
-        BANK_ADDR_WIDTH : natural := 8;
-        SIMD            : natural := 2;
+        SPM_NUM         : natural := 4;
+        BANK_ADDR_WIDTH : natural := 6;
+        SIMD            : natural := 10;
 
         N_RAM_ADDR      : natural := 3;
         N_LOCAL_ADDR    : natural := 3
@@ -81,7 +81,7 @@ architecture behavior of tb is
     signal S_val : natural := 1;  -- stride value
     signal starting_addr_op1 : std_logic_vector(31 downto 0) := x"00000000";
     signal starting_addr_op2 : std_logic_vector(31 downto 0) := x"00000400";
-    signal starting_addr_res : std_logic_vector(31 downto 0) := x"00000500";
+    signal starting_addr_res : std_logic_vector(31 downto 0) := x"00000800";
 
  	-- Clock generation process
     constant clk_period : time := 10 ns;
@@ -99,9 +99,9 @@ architecture behavior of tb is
     -- Instantiate the accelerator
     acc: matrix_add_accelerator
     generic map (
-        SPM_NUM         => 5,
-        BANK_ADDR_WIDTH => 8,
-        SIMD            => 2,
+        SPM_NUM         => 4,
+        BANK_ADDR_WIDTH => 6,
+        SIMD            => 10,
         N_RAM_ADDR      => 3,
         N_LOCAL_ADDR    => 3
     )
@@ -149,9 +149,9 @@ architecture behavior of tb is
         wait for clk_period*2;
 
         --Setto M, N, S nella ram.
-        M_dim       <= 4;  --passo M alla ram
-        N_dim       <= 3;  --passo N alla ram
-        S_val       <= 2;  	--passo S alla ram
+        M_dim       <= 5;  --passo M alla ram
+        N_dim       <= 2;  --passo N alla ram
+        S_val       <= 1;  	--passo S alla ram
 
         -- Load matrices from files
         Load <= '1';
@@ -160,24 +160,24 @@ architecture behavior of tb is
         wait for clk_period;
 
         --Setto M, N e S
-        -- Write to the CPU  --SET_M a 4 (x"4") 0010 0|100
-        cpu_data_in <= x"00000024";
+        -- Write to the CPU  --SET_M a 5 (x"0000002c") 000 0010 1|100
+        cpu_data_in <= x"0000002c";
         cpu_addr    <= (others => '0');
         cpu_write   <= '1';
         wait for clk_period;
         cpu_write   <= '0';
         wait for clk_period*10;
 
-        -- Write to the CPU  --SET_N a 3 (x"3") 0001 1|101
-        cpu_data_in <= x"0000001d";
+        -- Write to the CPU  --SET_N a 2 (x"00000015") 0001 0|101
+        cpu_data_in <= x"00000015";
         cpu_addr    <= (others => '0');
         cpu_write   <= '1';
         wait for clk_period;
         cpu_write   <= '0';
         wait for clk_period*10;
 
-        -- Write to the CPU  --SET_S a 2 (x"2") 0001 0|110  
-        cpu_data_in <= x"00000016";
+        -- Write to the CPU  --SET_S a 1 (x"0000000E") 0000 1|110  
+        cpu_data_in <= x"0000000E";
         cpu_addr    <= (others => '0');
         cpu_write   <= '1';
         wait for clk_period;
@@ -204,8 +204,8 @@ architecture behavior of tb is
 
         wait for clk_period;
 
-        --scrivo indirizzo memoria locale
-        cpu_data_in <= x"00000000";        						-- il primo operando lo carico all'indirizzo 0 della memoria locale
+        --scrivo indirizzo memoria locale  
+        cpu_data_in <= x"0000003F";        						-- il primo operando lo carico all'indirizzo 0 della memoria locale
         cpu_addr    <= std_logic_vector(to_unsigned(5, 3));    	--indirizzo 0 dei registri della mem locale (primo registro mem locale)
         cpu_write   <= '1';
         wait for clk_period;
@@ -219,7 +219,7 @@ architecture behavior of tb is
         cpu_write   <= '1';
         wait for clk_period;
         cpu_write   <= '0';
-        wait for clk_period*25;
+        wait for clk_period*710;
 -----------------------------------------------------------------------------------------
         --load operando 2:
         --scrivo indirizzi nei registri:
@@ -233,7 +233,7 @@ architecture behavior of tb is
         wait for clk_period;
 
         --scrivo indirizzo memoria locale
-        cpu_data_in <= x"00000040";        						-- il secondo operando lo carico all'indirizzo x40 della memoria locale
+        cpu_data_in <= x"0003003F";        						-- il secondo operando lo carico all'indirizzo x40 della memoria locale
         cpu_addr    <= std_logic_vector(to_unsigned(6, 3));		--indirizzo 1 dei registri mem locale (secondo registro mem locale)
         cpu_write   <= '1';
         wait for clk_period;
@@ -247,11 +247,11 @@ architecture behavior of tb is
         cpu_write   <= '1';
         wait for clk_period;
         cpu_write   <= '0';
-        wait for clk_period*25;
+        wait for clk_period*710;
 ---------------------------------------------------------------------------------------
         --somma operandi
         --scrivo indirizzo memoria locale risultato
-        cpu_data_in <= x"00000080";        						-- il risultato lo scrivo all'indirizzo x80 della memoria locale
+        cpu_data_in <= x"0006003F";        						-- il risultato lo scrivo all'indirizzo x80 della memoria locale
         cpu_addr    <= std_logic_vector(to_unsigned(7, 3));		--indirizzo 2 dei registri mem locale (terzo registro mem locale)
         cpu_write   <= '1';
         wait for clk_period;
@@ -265,11 +265,11 @@ architecture behavior of tb is
         cpu_write   <= '1';
         wait for clk_period;
         cpu_write   <= '0';
-        wait for clk_period*25;
+        wait for clk_period*80;
 ------------------------------------------------------------------------------------
         --Store matrice risultante
         --scrivo indirizzo ram risultato
- 		cpu_data_in <= x"00000500";        						-- il risultato lo scrivo all'indirizzo x500 della ram
+ 		cpu_data_in <= x"00000800";        						-- il risultato lo scrivo all'indirizzo x500 della ram
         cpu_addr    <= std_logic_vector(to_unsigned(4, 3));		--indirizzo 2 dei registri ram (terzo registro ram)
         cpu_write   <= '1';
         wait for clk_period;
@@ -283,7 +283,7 @@ architecture behavior of tb is
         cpu_write   <= '1';
         wait for clk_period;
         cpu_write   <= '0';
-        wait for clk_period*25;
+        wait for clk_period*710;
 ----------------------------------------------------------------------------------
         -- Store results back to file
         Store <= '1';

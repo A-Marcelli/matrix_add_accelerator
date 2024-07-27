@@ -212,7 +212,7 @@ begin
                     next_state      <= "10010";
                 elsif (unsigned(data_reg_in(SPM_SEL_WIDTH+BANK_SEL_WIDTH+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH+BANK_SEL_WIDTH)) /= 0) then
                     next_state      <= "10010";
-                elsif (unsigned(data_reg_in(ROW_SEL_WIDTH-1 downto 0)) > LAST_ADDR_EACH_BANK-1) then
+                elsif (unsigned(data_reg_in(ROW_SEL_WIDTH-1 downto 0)) > LAST_ADDR_EACH_BANK) then
                     next_state      <= "10010";
                 else
                     next_state  <= "01001";
@@ -251,7 +251,7 @@ begin
                 next_state      <= "10010";
             elsif (unsigned(data_reg_in(SPM_SEL_WIDTH+BANK_SEL_WIDTH+ROW_SEL_WIDTH-1 downto ROW_SEL_WIDTH+BANK_SEL_WIDTH)) /= 0) then
                 next_state      <= "10010";
-            elsif (unsigned(data_reg_in(ROW_SEL_WIDTH-1 downto 0)) > LAST_ADDR_EACH_BANK-1) then
+            elsif (unsigned(data_reg_in(ROW_SEL_WIDTH-1 downto 0)) > LAST_ADDR_EACH_BANK) then
                 next_state      <= "10010";
             end if;
             -- fine controllo
@@ -477,7 +477,7 @@ begin
                     CSR(10)              <= '1';
                 end if;
             
-                if (unsigned(data_reg_in(ROW_SEL_WIDTH-1 downto 0)) > LAST_ADDR_EACH_BANK-1) then
+                if (unsigned(data_reg_in(ROW_SEL_WIDTH-1 downto 0)) > LAST_ADDR_EACH_BANK) then
                     CSR(11)              <= '1';
                 end if;
                 -- fine controllo
@@ -572,7 +572,7 @@ begin
                 CSR(10)              <= '1';
             end if;
             
-            if (unsigned(data_reg_in(ROW_SEL_WIDTH-1 downto 0)) > LAST_ADDR_EACH_BANK-1) then
+            if (unsigned(data_reg_in(ROW_SEL_WIDTH-1 downto 0)) > LAST_ADDR_EACH_BANK) then
                 CSR(11)              <= '1';
             end if;
 
