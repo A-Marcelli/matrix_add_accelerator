@@ -4,16 +4,16 @@ use ieee.numeric_std.all;
 use ieee.math_real.all;
 use work.Byte_Busters.all;
 
-entity tb is
-end tb;
+entity tb_csr is
+end tb_csr;
 
-architecture behavior of tb is
+architecture behavior of tb_csr is
 
 --Components:
 -- Component Declaration for the accelerator
     component matrix_add_accelerator
     generic(
-        spm_num         : natural := 6;
+        SPM_NUM         : natural := 6;
         BANK_ADDR_WIDTH : natural := 6;
         SIMD            : natural := 10;
 
@@ -99,7 +99,7 @@ architecture behavior of tb is
     -- Instantiate the accelerator
     acc: matrix_add_accelerator
     generic map (
-        spm_num         => 6,
+        SPM_NUM         => 6,
         BANK_ADDR_WIDTH => 6,
         SIMD            => 10,
         N_RAM_ADDR      => 3,
@@ -159,137 +159,116 @@ architecture behavior of tb is
         Load <= '0';
         wait for clk_period;
 
-        --Setto M, N e S
-        -- Write to the CPU  --SET_M a 5 (x"0000002c") 001 0011 1|100
-        cpu_data_in <= x"0000013c";
+        --Setto M, N e S a "0" per controllare se il CSR segnala l'errore
+        -- Write to the CPU  --SET_M a 0 (x"00000004") 000 0000 0|100
+        cpu_data_in <= x"00000004";
         cpu_addr    <= (others => '0');
         cpu_write   <= '1';
         wait for clk_period;
         cpu_write   <= '0';
         wait for clk_period*10;
 
-        -- Write to the CPU  --SET_N a 2 (x"00000015") 1001 0|101
-        cpu_data_in <= x"00000095";
+        -- Write to the CPU  --SET_N a 0 (x"00000005") 0000 0|101
+        cpu_data_in <= x"00000005";
         cpu_addr    <= (others => '0');
         cpu_write   <= '1';
         wait for clk_period;
         cpu_write   <= '0';
         wait for clk_period*10;
 
-        -- Write to the CPU  --SET_S a 1 (x"0000000E") 0000 1|110  
-        cpu_data_in <= x"0000000E";
+        -- Write to the CPU  --SET_S a 0 (x"00000006") 0000 0|110  
+        cpu_data_in <= x"00000006";
         cpu_addr    <= (others => '0');
         cpu_write   <= '1';
         wait for clk_period;
         cpu_write   <= '0';
         wait for clk_period*10;
 
-        -- Read from the CPU the CSR, should return 0
-        --cpu_addr    <= std_logic_vector(to_unsigned(1,3));
-        --cpu_read    <= '1';
-        --wait for clk_period;
-        --cpu_read    <= '0';
-        --wait for clk_period * 10;
 ------------------------------------------------------------------------------------
-        --Load operandi da memoria centrale a local memory
+        -- Write to the CPU  --Provo ad inviare istruzione non valida  
+        cpu_data_in <= x"00000007";
+        cpu_addr    <= (others => '0');
+        cpu_write   <= '1';
+        wait for clk_period;
+        cpu_write   <= '0';
+        wait for clk_period*10;
+----------------------------------------------------------------------------------
+        --scrivo indirizzo memoria ram su registro non valido:
+        cpu_data_in <= x"00000401";
+        cpu_addr    <= (others => '0');
+        cpu_write   <= '1';
+        wait for clk_period;
+        cpu_write   <= '0';
+        wait for clk_period*10;
 
-        --load operando 1:
-        --scrivo indirizzi nei registri:
-        --scrivo indirizzo memoria ram:
-        cpu_data_in <= x"00000000";                             --il primo operando sta all'indirizzo 0 della ram
-        cpu_addr    <= std_logic_vector(to_unsigned(2, 3));     --indirizzo 0 dei registri della ram (primo registro ram)
+        wait for clk_period;
+
+        --scrivo indirizzo memoria locale su registro non valido  
+        cpu_data_in <= x"00000041";    -- 0100 0|001
+        cpu_addr    <= (others => '0');
+        cpu_write   <= '1';
+        wait for clk_period;
+        cpu_write   <= '0';
+        wait for clk_period*10;
+
+        wait for clk_period;
+----------------------------------------------------------------------------------------
+        --scrivo indirizzo memoria locale con SPM non valida 
+        cpu_data_in <= x"01000000";                             -- il primo operando lo carico all'indirizzo 0 della memoria locale
+        cpu_addr    <= std_logic_vector(to_unsigned(5, 3));     --indirizzo 0 dei registri della mem locale (primo registro mem locale)
         cpu_write   <= '1';
         wait for clk_period;
         cpu_write   <= '0';
 
         wait for clk_period;
 
-        --scrivo indirizzo memoria locale  
-        cpu_data_in <= x"00000000";        						-- il primo operando lo carico all'indirizzo 0 della memoria locale
-        cpu_addr    <= std_logic_vector(to_unsigned(5, 3));    	--indirizzo 0 dei registri della mem locale (primo registro mem locale)
-        cpu_write   <= '1';
-        wait for clk_period;
-        cpu_write   <= '0';
-
-        wait for clk_period;
-
-        --invio istruzione di load:      	|0 0000 |0000 0|001 = x"00000001"
+        --invio istruzione di load:         |0 0000 |0000 0|001 = x"00000001"
         cpu_data_in <= x"00000001";
         cpu_addr    <= (others => '0');
         cpu_write   <= '1';
         wait for clk_period;
         cpu_write   <= '0';
-        wait for clk_period*710;
------------------------------------------------------------------------------------------
-        --load operando 2:
-        --scrivo indirizzi nei registri:
-        --scrivo indirizzo memoria ram:
-        cpu_data_in <= x"00000400";								--il secondo operando sta all'indirizzo x400 della ram
-        cpu_addr    <= std_logic_vector(to_unsigned(3, 3));    	--indirizzo 1 dei registri della ram (secondo registro ram)
+        wait for clk_period*10;
+
+        --scrivo indirizzo memoria locale con BANK non valido 
+        cpu_data_in <= x"00500000";                             -- il primo operando lo carico all'indirizzo 0 della memoria locale
+        cpu_addr    <= std_logic_vector(to_unsigned(5, 3));     --indirizzo 0 dei registri della mem locale (primo registro mem locale)
         cpu_write   <= '1';
         wait for clk_period;
         cpu_write   <= '0';
 
         wait for clk_period;
 
-        --scrivo indirizzo memoria locale
-        cpu_data_in <= x"00030000";        						-- il secondo operando lo carico all'indirizzo x40 della memoria locale
-        cpu_addr    <= std_logic_vector(to_unsigned(6, 3));		--indirizzo 1 dei registri mem locale (secondo registro mem locale)
-        cpu_write   <= '1';
-        wait for clk_period;
-        cpu_write   <= '0';
-
-        wait for clk_period;
-
-        --invio istruzione di load:         |0 0001 |0000 1|001 = x"00000109"
-        cpu_data_in <= x"00000109";
+        --invio istruzione di load:         |0 0000 |0000 0|001 = x"00000001"
+        cpu_data_in <= x"00000001";
         cpu_addr    <= (others => '0');
         cpu_write   <= '1';
         wait for clk_period;
         cpu_write   <= '0';
-        wait for clk_period*710;
----------------------------------------------------------------------------------------
-        --somma operandi
-        --scrivo indirizzo memoria locale risultato
-        cpu_data_in <= x"00060000";        						-- il risultato lo scrivo all'indirizzo x80 della memoria locale
-        cpu_addr    <= std_logic_vector(to_unsigned(7, 3));		--indirizzo 2 dei registri mem locale (terzo registro mem locale)
+        wait for clk_period*10;
+
+        --scrivo indirizzo memoria locale con RIGA non valida 
+        cpu_data_in <= x"0000f000";                             -- il primo operando lo carico all'indirizzo 0 della memoria locale
+        cpu_addr    <= std_logic_vector(to_unsigned(5, 3));     --indirizzo 0 dei registri della mem locale (primo registro mem locale)
         cpu_write   <= '1';
         wait for clk_period;
         cpu_write   <= '0';
 
         wait for clk_period;
 
-        --invio istruzione di somma:        |00 010|0 0001 |0000 0|011 = x"00004103"
-        cpu_data_in <= x"00004103";
+        --invio istruzione di load:         |0 0000 |0000 0|001 = x"00000001"
+        cpu_data_in <= x"00000001";
         cpu_addr    <= (others => '0');
         cpu_write   <= '1';
         wait for clk_period;
         cpu_write   <= '0';
-        wait for clk_period*130;
-------------------------------------------------------------------------------------
-        --Store matrice risultante
-        --scrivo indirizzo ram risultato
- 		cpu_data_in <= x"00000800";        						-- il risultato lo scrivo all'indirizzo x500 della ram
-        cpu_addr    <= std_logic_vector(to_unsigned(4, 3));		--indirizzo 2 dei registri ram (terzo registro ram)
-        cpu_write   <= '1';
-        wait for clk_period;
-        cpu_write   <= '0';
-
-        wait for clk_period;
-
-        --invio istruzione di store         |0 0010 |0001 0|010 = x"00000212"
-        cpu_data_in <= x"00000212";
-        cpu_addr    <= (others => '0');
-        cpu_write   <= '1';
-        wait for clk_period;
-        cpu_write   <= '0';
-        wait for clk_period*710;
-----------------------------------------------------------------------------------
+        wait for clk_period*10;
+----------------------------------------------------------------------------------------
         -- Store results back to file
-        Store <= '1';
-        wait for clk_period;
-        Store <= '0';
-        wait for clk_period;
+        --Store <= '1';
+        --wait for clk_period;
+        --Store <= '0';
+        --wait for clk_period;
 
         -- Finish the simulation
         wait;

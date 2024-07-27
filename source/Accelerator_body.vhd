@@ -187,10 +187,10 @@ begin
 		when "00010" =>                 --load
 			
 			-- controllo se i registri indirizzati esistono
-			if ( unsigned(istruzione((8 + (REG_ADDR_WIDTH-1)) downto 8)) >= (N_RAM_ADDR) ) then
+			if ( unsigned(istruzione(12 downto 8)) >= (N_RAM_ADDR) ) then
                 next_state      <= "10010";
             
-            elsif ( unsigned(istruzione((3 + (REG_ADDR_WIDTH-1)) downto 3)) >= (N_LOCAL_ADDR) ) then
+            elsif ( unsigned(istruzione(7 downto 3)) >= (N_LOCAL_ADDR) ) then
                 next_state      <= "10010";
             else
                 next_state <= "01000";              --procede con l'operazione
@@ -232,10 +232,10 @@ begin
 		when "00011" =>               --store
 			
 			-- controllo indirizzi dei registri
-			if ( unsigned(istruzione((8 + (REG_ADDR_WIDTH-1)) downto 8)) >= (N_RAM_ADDR) ) then
+			if ( unsigned(istruzione(12 downto 8)) >= (N_RAM_ADDR) ) then
                 next_state      <= "10010";
             
-            elsif ( unsigned(istruzione((3 + (REG_ADDR_WIDTH-1)) downto 3)) >= (N_LOCAL_ADDR) ) then
+            elsif ( unsigned(istruzione(7 downto 3)) >= (N_LOCAL_ADDR) ) then
                 next_state      <= "10010";
                 
             else
@@ -271,11 +271,11 @@ begin
 		when "00100" =>               --add
 			
 			-- controllo indirizzi
-			if ( unsigned(istruzione((8 + (REG_ADDR_WIDTH-1)) downto 8))  >= (N_LOCAL_ADDR) ) then
+			if ( unsigned(istruzione(12 downto 8))  >= (N_LOCAL_ADDR) ) then
                 next_state      <= "10010";                       
-            elsif ( unsigned(istruzione((3 + (REG_ADDR_WIDTH-1)) downto 3)) >= (N_LOCAL_ADDR) ) then
+            elsif ( unsigned(istruzione(7 downto 3)) >= (N_LOCAL_ADDR) ) then
                 next_state      <= "10010";          
-            elsif ( unsigned(istruzione((13 + (REG_ADDR_WIDTH-1)) downto 13)) >= (N_LOCAL_ADDR) ) then
+            elsif ( unsigned(istruzione(17 downto 13)) >= (N_LOCAL_ADDR) ) then
                 next_state      <= "10010";
             else
                 next_state      <= "01110";         -- procede con l'add
@@ -440,11 +440,11 @@ begin
 			addr_reg_int            <= std_logic_vector(unsigned(istruzione((8 + (REG_ADDR_WIDTH-1)) downto 8)) + 2);  -- non avendo una dimensione fissa, nell'istruzione sono 5 bit (8-12), ma devo leggere solo quelli necessari
             
             -- controllo del registro indirizzato
-            if ( unsigned(istruzione((8 + (REG_ADDR_WIDTH-1)) downto 8)) >= (N_RAM_ADDR) ) then
+            if ( unsigned(istruzione(12 downto 8)) >= (N_RAM_ADDR) ) then
                 CSR(1)              <= '1';
             end if;
             
-            if ( unsigned(istruzione((3 + (REG_ADDR_WIDTH-1)) downto 3)) >= (N_LOCAL_ADDR) ) then
+            if ( unsigned(istruzione(7 downto 3)) >= (N_LOCAL_ADDR) ) then
                 CSR(2)              <= '1';
             end if;
             -- fine controllo
@@ -548,11 +548,11 @@ begin
 			read_reg_int 			<= '1';
 			addr_reg_int            <= std_logic_vector(unsigned(istruzione((3 + (REG_ADDR_WIDTH-1)) downto 3)) + 2 + N_RAM_ADDR);  -- non avendo una dimensione fissa, nell'istruzione sono 5 bit (8-12), ma devo leggere solo quelli necessari
     
-            if ( unsigned(istruzione((8 + (REG_ADDR_WIDTH-1)) downto 8)) >= (N_RAM_ADDR) ) then
+            if ( unsigned(istruzione(12 downto 8)) >= (N_RAM_ADDR) ) then
                 CSR(1)              <= '1';
             end if;
             
-            if ( unsigned(istruzione((3 + (REG_ADDR_WIDTH-1)) downto 3)) >= (N_LOCAL_ADDR) ) then
+            if ( unsigned(istruzione(7 downto 3)) >= (N_LOCAL_ADDR) ) then
                 CSR(2)              <= '1';
             end if;
 
@@ -628,13 +628,13 @@ begin
 			addr_reg_int			<= std_logic_vector(unsigned(istruzione((3 + (REG_ADDR_WIDTH-1)) downto 3))  + 2 + N_RAM_ADDR);
 			
 			-- controllo errore
-			if ( unsigned(istruzione((8 + (REG_ADDR_WIDTH-1)) downto 8))  >= (N_LOCAL_ADDR) ) then
+			if ( unsigned(istruzione(12 downto 8))  >= (N_LOCAL_ADDR) ) then
                 CSR(2)              <= '1';
                         
-            elsif ( unsigned(istruzione((3 + (REG_ADDR_WIDTH-1)) downto 3)) >= (N_LOCAL_ADDR) ) then
+            elsif ( unsigned(istruzione(7 downto 3)) >= (N_LOCAL_ADDR) ) then
                 CSR(2)              <= '1';
             
-            elsif ( unsigned(istruzione((13 + (REG_ADDR_WIDTH-1)) downto 13)) >= (N_LOCAL_ADDR) ) then
+            elsif ( unsigned(istruzione(17 downto 13)) >= (N_LOCAL_ADDR) ) then
                 CSR(2)              <= '1';
             
             end if;
