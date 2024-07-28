@@ -24,7 +24,7 @@ end RAM;
 
 architecture RAM of RAM is -- this architecture is purely behavioral, not intended for synthesis
 
-type CELLE is array (4095 downto 0) of std_logic_vector(31 downto 0);
+type CELLE is array (382500 downto 0) of std_logic_vector(31 downto 0);
 signal mem 		: CELLE;
 signal num_el : natural := 0;
 

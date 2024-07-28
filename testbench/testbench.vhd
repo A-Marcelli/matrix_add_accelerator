@@ -13,9 +13,9 @@ architecture behavior of tb is
 -- Component Declaration for the accelerator
     component matrix_add_accelerator
     generic(
-        spm_num         : natural := 2;
-        BANK_ADDR_WIDTH : natural := 6;
-        SIMD            : natural := 2;
+        spm_num         : natural := 255;
+        BANK_ADDR_WIDTH : natural := 9;
+        SIMD            : natural := 3;
 
         N_RAM_ADDR      : natural := 3;
         N_LOCAL_ADDR    : natural := 3
@@ -76,15 +76,15 @@ architecture behavior of tb is
     --RAM
     signal Load : std_logic := '0';
     signal Store : std_logic := '0';
-    signal M_dim : natural := 2; -- 2 rows
-    signal N_dim : natural := 2; -- 2 columns
+    signal M_dim : natural := 1920; -- 2 rows
+    signal N_dim : natural := 1080; -- 2 columns
     signal S_val : natural := 1;  -- stride value
     signal starting_addr_op1 : std_logic_vector(31 downto 0) := x"00000000";
-    signal starting_addr_op2 : std_logic_vector(31 downto 0) := x"00000400";
-    signal starting_addr_res : std_logic_vector(31 downto 0) := x"00000800";
+    signal starting_addr_op2 : std_logic_vector(31 downto 0) := x"00020000";
+    signal starting_addr_res : std_logic_vector(31 downto 0) := x"00040000";
 
  	-- Clock generation process
-    constant clk_period : time := 10 ns;
+    constant clk_period : time := 100 ps;
 
     begin
         clk_process : process
@@ -99,9 +99,9 @@ architecture behavior of tb is
     -- Instantiate the accelerator
     acc: matrix_add_accelerator
     generic map (
-        spm_num         => 2,
-        BANK_ADDR_WIDTH => 6,
-        SIMD            => 2,
+        spm_num         => 255,
+        BANK_ADDR_WIDTH => 9,
+        SIMD            => 3,
         N_RAM_ADDR      => 3,
         N_LOCAL_ADDR    => 3
     )
@@ -149,8 +149,8 @@ architecture behavior of tb is
         wait for clk_period*2;
 
         --Setto M, N, S nella ram.
-        M_dim       <= 3;  --passo M alla ram
-        N_dim       <= 3;  --passo N alla ram
+        M_dim       <= 300;  --passo M alla ram
+        N_dim       <= 400;  --passo N alla ram
         S_val       <= 1;  	--passo S alla ram
 
         -- Load matrices from files
@@ -160,16 +160,16 @@ architecture behavior of tb is
         wait for clk_period;
 
         --Setto M, N e S
-        -- Write to the CPU  --SET_M a 5 (x"0000002c") 000 0001 1|100
-        cpu_data_in <= x"0000001c";
+        -- Write to the CPU  --SET_M a 300 (x"0000002c") 0000 1001 0110 0|100
+        cpu_data_in <= x"00000964";
         cpu_addr    <= (others => '0');
         cpu_write   <= '1';
         wait for clk_period;
         cpu_write   <= '0';
         wait for clk_period*10;
 
-        -- Write to the CPU  --SET_N a 2 (x"00000015") 0001 1|101
-        cpu_data_in <= x"0000001d";
+        -- Write to the CPU  --SET_N a 400 (x"00000015") 0000 1100 1000 0|101
+        cpu_data_in <= x"00000C85";
         cpu_addr    <= (others => '0');
         cpu_write   <= '1';
         wait for clk_period;
@@ -219,12 +219,12 @@ architecture behavior of tb is
         cpu_write   <= '1';
         wait for clk_period;
         cpu_write   <= '0';
-        wait for clk_period*710;
+        wait for clk_period*120050;
 -----------------------------------------------------------------------------------------
         --load operando 2:
         --scrivo indirizzi nei registri:
         --scrivo indirizzo memoria ram:
-        cpu_data_in <= x"00000400";								--il secondo operando sta all'indirizzo x400 della ram
+        cpu_data_in <= x"00020000";								--il secondo operando sta all'indirizzo x400 della ram
         cpu_addr    <= std_logic_vector(to_unsigned(3, 3));    	--indirizzo 1 dei registri della ram (secondo registro ram)
         cpu_write   <= '1';
         wait for clk_period;
@@ -233,7 +233,7 @@ architecture behavior of tb is
         wait for clk_period;
 
         --scrivo indirizzo memoria locale
-        cpu_data_in <= x"00030000";        						-- il secondo operando lo carico all'indirizzo x40 della memoria locale
+        cpu_data_in <= x"00010000";        						-- il secondo operando lo carico all'indirizzo x40 della memoria locale
         cpu_addr    <= std_logic_vector(to_unsigned(6, 3));		--indirizzo 1 dei registri mem locale (secondo registro mem locale)
         cpu_write   <= '1';
         wait for clk_period;
@@ -247,11 +247,11 @@ architecture behavior of tb is
         cpu_write   <= '1';
         wait for clk_period;
         cpu_write   <= '0';
-        wait for clk_period*710;
+        wait for clk_period*120050;
 ---------------------------------------------------------------------------------------
         --somma operandi
         --scrivo indirizzo memoria locale risultato
-        cpu_data_in <= x"00060000";        						-- il risultato lo scrivo all'indirizzo x80 della memoria locale
+        cpu_data_in <= x"00020000";        						-- il risultato lo scrivo all'indirizzo x80 della memoria locale
         cpu_addr    <= std_logic_vector(to_unsigned(7, 3));		--indirizzo 2 dei registri mem locale (terzo registro mem locale)
         cpu_write   <= '1';
         wait for clk_period;
@@ -265,11 +265,11 @@ architecture behavior of tb is
         cpu_write   <= '1';
         wait for clk_period;
         cpu_write   <= '0';
-        wait for clk_period*130;
+        wait for clk_period*490;
 ------------------------------------------------------------------------------------
         --Store matrice risultante
         --scrivo indirizzo ram risultato
- 		cpu_data_in <= x"00000800";        						-- il risultato lo scrivo all'indirizzo x500 della ram
+ 		cpu_data_in <= x"00040000";        						-- il risultato lo scrivo all'indirizzo x500 della ram
         cpu_addr    <= std_logic_vector(to_unsigned(4, 3));		--indirizzo 2 dei registri ram (terzo registro ram)
         cpu_write   <= '1';
         wait for clk_period;
@@ -283,7 +283,7 @@ architecture behavior of tb is
         cpu_write   <= '1';
         wait for clk_period;
         cpu_write   <= '0';
-        wait for clk_period*710;
+        wait for clk_period*120050;
 ----------------------------------------------------------------------------------
         -- Store results back to file
         Store <= '1';
