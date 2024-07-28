@@ -2,8 +2,8 @@
 % rows = randi([1, 50]);  % Numero di righe casuale tra 1 e 10
 % cols = randi([1, 50]);  % Numero di colonne casuale tra 1 e 10
 
-rows = 39;
-cols = 18;
+rows = 200;
+cols = 200;
 
 % Crea una matrice casuale di interi
 A = randi([1, 100], rows, cols);  % Matrice con valori casuali tra 1 e 100
