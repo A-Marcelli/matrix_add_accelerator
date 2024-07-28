@@ -114,13 +114,20 @@ module tb;
         Load = 1;
         #(CLK_PERIOD);
         Load = 0;
-        #(CLK_PERIOD);
+        #(CLK_PERIOD*3);
 
         // Write to the CPU
         cpu_data_in = 32'h0000001c;
         cpu_addr = 0;
         cpu_write = 1;
-        #(CLK_PERIOD);
+        #(CLK_PERIOD*3);
+        cpu_write = 0;
+        #(CLK_PERIOD*10);
+        
+        cpu_data_in = 32'h0000001c;
+        cpu_addr = 0;
+        cpu_write = 1;
+        #(CLK_PERIOD*3);
         cpu_write = 0;
         #(CLK_PERIOD*10);
 

@@ -257,7 +257,7 @@ begin
             -- fine controllo
 			
 		when "01100" =>
-			if count = (ultimo_elemento-1) then --DA CONTROLLARE
+			if count = (ultimo_elemento-1) then
 				next_state <= "01101";
 			else 
 				next_state <= "01100";
@@ -289,7 +289,7 @@ begin
 			next_state <= "10000";
 			
 		when "10000" =>
-			if fine_somma >= (ultimo_elemento - SPM_NUM - 1) then 
+			if fine_somma >= (ultimo_elemento - SPM_NUM) then  --tolto -1 dalla condizione
 				next_state <= "10001";
 			else 
 				next_state <= "10000";
