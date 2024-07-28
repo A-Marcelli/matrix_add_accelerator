@@ -9,24 +9,24 @@ end tb;
 
 architecture behavior of tb is
 
-    constant c_spm_num          : integer := 4;  --max 256
-    constant c_BANK_ADDR_WIDTH  : integer := 9;  --max 16
-    constant c_SIMD             : integer := 3;  --max 255
+    constant c_spm_num          : integer := 200;  --max 256
+    constant c_BANK_ADDR_WIDTH  : integer := 6;  --max 16
+    constant c_SIMD             : integer := 13;  --max 255
     constant c_N_RAM_ADDR       : integer := 3;  --min 3
     constant c_N_LOCAL_ADDR     : integer := 3;  --min 3
 
-    constant c_Dimensione               : integer := 100;  --Dimensione RAM
+    constant c_Dimensione               : integer := 130000;  --Dimensione RAM
     constant c_starting_addr_op1_ram    : std_logic_vector(31 downto 0) := x"00000000";
-    constant c_starting_addr_op2_ram    : std_logic_vector(31 downto 0) := x"00000020";
-    constant c_starting_addr_res_ram    : std_logic_vector(31 downto 0) := x"00000040";
+    constant c_starting_addr_op2_ram    : std_logic_vector(31 downto 0) := x"00009C40";
+    constant c_starting_addr_res_ram    : std_logic_vector(31 downto 0) := x"00013880";
 
-    constant c_M_dim    : integer := 4;  --numero di righe matrice
-    constant c_N_dim    : integer := 4;  --numero di colonne matrice
+    constant c_M_dim    : integer := 200;  --numero di righe matrice
+    constant c_N_dim    : integer := 200;  --numero di colonne matrice
     constant c_S_val    : integer := 1;  --stride
 
     constant c_starting_addr_op1_local_mem  : std_logic_vector(31 downto 0) := x"00000000";
-    constant c_starting_addr_op2_local_mem  : std_logic_vector(31 downto 0) := x"00010000";
-    constant c_starting_addr_res_local_mem  : std_logic_vector(31 downto 0) := x"00020000";
+    constant c_starting_addr_op2_local_mem  : std_logic_vector(31 downto 0) := x"00040000";
+    constant c_starting_addr_res_local_mem  : std_logic_vector(31 downto 0) := x"00080000";
 
 
 --Components:
