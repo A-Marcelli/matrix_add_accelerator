@@ -9,20 +9,20 @@ end tb;
 
 architecture behavior of tb is
 
-    constant c_spm_num          : integer := 4;
-    constant c_BANK_ADDR_WIDTH  : integer := 9;
-    constant c_SIMD             : integer := 3;
-    constant c_N_RAM_ADDR       : integer := 3;
-    constant c_N_LOCAL_ADDR     : integer := 3;
+    constant c_spm_num          : integer := 4;  --max 256
+    constant c_BANK_ADDR_WIDTH  : integer := 9;  --max 16
+    constant c_SIMD             : integer := 3;  --max 255
+    constant c_N_RAM_ADDR       : integer := 3;  --min 3
+    constant c_N_LOCAL_ADDR     : integer := 3;  --min 3
 
-    constant c_Dimensione               : integer := 100;
+    constant c_Dimensione               : integer := 100;  --Dimensione RAM
     constant c_starting_addr_op1_ram    : std_logic_vector(31 downto 0) := x"00000000";
     constant c_starting_addr_op2_ram    : std_logic_vector(31 downto 0) := x"00000020";
     constant c_starting_addr_res_ram    : std_logic_vector(31 downto 0) := x"00000040";
 
-    constant c_M_dim    : integer := 4;
-    constant c_N_dim    : integer := 4;
-    constant c_S_val    : integer := 1;
+    constant c_M_dim    : integer := 4;  --numero di righe matrice
+    constant c_N_dim    : integer := 4;  --numero di colonne matrice
+    constant c_S_val    : integer := 1;  --stride
 
     constant c_starting_addr_op1_local_mem  : std_logic_vector(31 downto 0) := x"00000000";
     constant c_starting_addr_op2_local_mem  : std_logic_vector(31 downto 0) := x"00010000";
@@ -165,6 +165,9 @@ architecture behavior of tb is
 
     -- Stimulus process
     stim_proc: process
+
+    variable N_INT_REG : integer := integer(ceil(log2(real(c_N_RAM_ADDR + c_N_LOCAL_ADDR + 2))));
+    
     begin
 
         -- Reset the RAM
@@ -216,7 +219,7 @@ architecture behavior of tb is
         --scrivo indirizzi nei registri:
         --scrivo indirizzo memoria ram:
         cpu_data_in <= c_starting_addr_op1_ram;                             --il primo operando sta all'indirizzo 0 della ram
-        cpu_addr    <= std_logic_vector(to_unsigned(2, 3));     --indirizzo 0 dei registri della ram (primo registro ram)
+        cpu_addr    <= std_logic_vector(to_unsigned(2, N_INT_REG));     --indirizzo 0 dei registri della ram (primo registro ram)
         cpu_write   <= '1';
         wait for clk_period;
         cpu_write   <= '0';
@@ -225,7 +228,7 @@ architecture behavior of tb is
 
         --scrivo indirizzo memoria locale  
         cpu_data_in <= c_starting_addr_op1_local_mem;        						-- il primo operando lo carico all'indirizzo 0 della memoria locale
-        cpu_addr    <= std_logic_vector(to_unsigned(5, 3));    	--indirizzo 0 dei registri della mem locale (primo registro mem locale)
+        cpu_addr    <= std_logic_vector(to_unsigned(5, N_INT_REG));    	--indirizzo 0 dei registri della mem locale (primo registro mem locale)
         cpu_write   <= '1';
         wait for clk_period;
         cpu_write   <= '0';
@@ -244,7 +247,7 @@ architecture behavior of tb is
         --scrivo indirizzi nei registri:
         --scrivo indirizzo memoria ram:
         cpu_data_in <= c_starting_addr_op2_ram;								--il secondo operando sta all'indirizzo x400 della ram
-        cpu_addr    <= std_logic_vector(to_unsigned(3, 3));    	--indirizzo 1 dei registri della ram (secondo registro ram)
+        cpu_addr    <= std_logic_vector(to_unsigned(3, N_INT_REG));    	--indirizzo 1 dei registri della ram (secondo registro ram)
         cpu_write   <= '1';
         wait for clk_period;
         cpu_write   <= '0';
@@ -253,7 +256,7 @@ architecture behavior of tb is
 
         --scrivo indirizzo memoria locale
         cpu_data_in <= c_starting_addr_op2_local_mem;        						--il secondo operando lo carico all'indirizzo x40 della memoria locale
-        cpu_addr    <= std_logic_vector(to_unsigned(6, 3));		--indirizzo 1 dei registri mem locale (secondo registro mem locale)
+        cpu_addr    <= std_logic_vector(to_unsigned(6, N_INT_REG));		--indirizzo 1 dei registri mem locale (secondo registro mem locale)
         cpu_write   <= '1';
         wait for clk_period;
         cpu_write   <= '0';
@@ -271,7 +274,7 @@ architecture behavior of tb is
         --somma operandi
         --scrivo indirizzo memoria locale risultato
         cpu_data_in <= c_starting_addr_res_local_mem;        						-- il risultato lo scrivo all'indirizzo x80 della memoria locale
-        cpu_addr    <= std_logic_vector(to_unsigned(7, 3));		--indirizzo 2 dei registri mem locale (terzo registro mem locale)
+        cpu_addr    <= std_logic_vector(to_unsigned(7, N_INT_REG));		--indirizzo 2 dei registri mem locale (terzo registro mem locale)
         cpu_write   <= '1';
         wait for clk_period;
         cpu_write   <= '0';
@@ -289,7 +292,7 @@ architecture behavior of tb is
         --Store matrice risultante
         --scrivo indirizzo ram risultato
  		cpu_data_in <= c_starting_addr_res_ram;        						-- il risultato lo scrivo all'indirizzo x500 della ram
-        cpu_addr    <= std_logic_vector(to_unsigned(4, 3));		--indirizzo 2 dei registri ram (terzo registro ram)
+        cpu_addr    <= std_logic_vector(to_unsigned(4, N_INT_REG));		--indirizzo 2 dei registri ram (terzo registro ram)
         cpu_write   <= '1';
         wait for clk_period;
         cpu_write   <= '0';
