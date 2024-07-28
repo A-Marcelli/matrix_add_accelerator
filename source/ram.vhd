@@ -4,6 +4,9 @@ USE std.textio.ALL;
 USE ieee.numeric_std.ALL;
 
 entity RAM is
+generic(
+		Dimensione : integer := 382500
+	);
 	port(
 		CK: in std_logic;
 		RESET: in std_logic;
@@ -20,11 +23,12 @@ entity RAM is
 		starting_addr_op2 : in std_logic_vector(31 downto 0); -- per passare indirizzo iniziale matrice op2 per salvarla  da file
 		starting_addr_res : in std_logic_vector(31 downto 0)  -- per passare indirizzo iniziale matrice res per scriverla su file
 		);
+
 end RAM;
 
 architecture RAM of RAM is -- this architecture is purely behavioral, not intended for synthesis
 
-type CELLE is array (382500 downto 0) of std_logic_vector(31 downto 0);
+type CELLE is array (Dimensione-1 downto 0) of std_logic_vector(31 downto 0);
 signal mem 		: CELLE;
 signal num_el : natural := 0;
 
@@ -87,7 +91,7 @@ num_el <= M_dim * N_dim;
 	process(CK,RESET,WR,Load,Store) 
   	begin
   	if RESET='1' then
-  		clear:  FOR index in 0 to 4095
+  		clear:  FOR index in 0 to Dimensione-1
   			loop -- this loop is entirely executed in one delta time
   				mem(index)<=x"00000000";
   			end loop clear;	
