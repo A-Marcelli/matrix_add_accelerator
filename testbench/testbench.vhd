@@ -13,9 +13,9 @@ architecture behavior of tb is
 -- Component Declaration for the accelerator
     component matrix_add_accelerator
     generic(
-        spm_num         : natural := 6;
+        spm_num         : natural := 2;
         BANK_ADDR_WIDTH : natural := 6;
-        SIMD            : natural := 10;
+        SIMD            : natural := 2;
 
         N_RAM_ADDR      : natural := 3;
         N_LOCAL_ADDR    : natural := 3
@@ -99,9 +99,9 @@ architecture behavior of tb is
     -- Instantiate the accelerator
     acc: matrix_add_accelerator
     generic map (
-        spm_num         => 6,
+        spm_num         => 2,
         BANK_ADDR_WIDTH => 6,
-        SIMD            => 10,
+        SIMD            => 2,
         N_RAM_ADDR      => 3,
         N_LOCAL_ADDR    => 3
     )
@@ -149,8 +149,8 @@ architecture behavior of tb is
         wait for clk_period*2;
 
         --Setto M, N, S nella ram.
-        M_dim       <= 39;  --passo M alla ram
-        N_dim       <= 18;  --passo N alla ram
+        M_dim       <= 3;  --passo M alla ram
+        N_dim       <= 3;  --passo N alla ram
         S_val       <= 1;  	--passo S alla ram
 
         -- Load matrices from files
@@ -160,16 +160,16 @@ architecture behavior of tb is
         wait for clk_period;
 
         --Setto M, N e S
-        -- Write to the CPU  --SET_M a 5 (x"0000002c") 001 0011 1|100
-        cpu_data_in <= x"0000013c";
+        -- Write to the CPU  --SET_M a 5 (x"0000002c") 000 0001 1|100
+        cpu_data_in <= x"0000001c";
         cpu_addr    <= (others => '0');
         cpu_write   <= '1';
         wait for clk_period;
         cpu_write   <= '0';
         wait for clk_period*10;
 
-        -- Write to the CPU  --SET_N a 2 (x"00000015") 1001 0|101
-        cpu_data_in <= x"00000095";
+        -- Write to the CPU  --SET_N a 2 (x"00000015") 0001 1|101
+        cpu_data_in <= x"0000001d";
         cpu_addr    <= (others => '0');
         cpu_write   <= '1';
         wait for clk_period;

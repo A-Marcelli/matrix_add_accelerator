@@ -7,9 +7,9 @@ use work.Byte_Busters.all;
 
 entity matrix_add_accelerator is
 	generic(
-		spm_num         : natural := 6;    -- The number of scratchpads and adders avaibles, min 2, max 255
+		spm_num         : natural := 2;    -- The number of scratchpads and adders avaibles, min 2, max 255
     	BANK_ADDR_WIDTH : natural := 6;    -- address size of each BANK min: 4, max: 16 
-    	SIMD            : natural := 10;    -- banks in each spm, solo potenze di 2. max 256                    -- da errore se uguale a 1
+    	SIMD            : natural := 2;    -- banks in each spm, solo potenze di 2. max 256                    -- da errore se uguale a 1
         
       N_RAM_ADDR      : natural := 3;     --number of registers that contain a RAM cell address
       N_LOCAL_ADDR    : natural := 3      --number of registers that contain a local memory cell address  --la somma dei due registri deve fare massimo 30

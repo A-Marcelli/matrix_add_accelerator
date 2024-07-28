@@ -13,9 +13,9 @@ entity RAM is
 		Load:in std_logic;    --file
 		Store:in std_logic;   --file
 		Data: inout std_logic_vector(31 downto 0);
-		M_dim : in natural; 	--per passare M, N e S
-		N_dim : in natural; 	--per passare M, N e S
-		S_val : in natural;  	--per passare M, N e S
+		M_dim : in integer; 	--per passare M, N e S
+		N_dim : in integer; 	--per passare M, N e S
+		S_val : in integer;  	--per passare M, N e S
 		starting_addr_op1 : in std_logic_vector(31 downto 0); -- per passare indirizzo iniziale matrice op1 per salvarla  da file
 		starting_addr_op2 : in std_logic_vector(31 downto 0); -- per passare indirizzo iniziale matrice op2 per salvarla  da file
 		starting_addr_res : in std_logic_vector(31 downto 0)  -- per passare indirizzo iniziale matrice res per scriverla su file
